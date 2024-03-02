@@ -5,8 +5,10 @@ import {
 import { createEffect, onCleanup, type JSX } from "solid-js";
 
 export interface VerticalScrollBarProps
-	extends Omit<ScrollBarOptions, "scrollBar">,
-		JSX.HTMLAttributes<HTMLDivElement> {}
+	extends Omit<Partial<ScrollBarOptions>, "scrollBar" | "container">,
+		JSX.HTMLAttributes<HTMLDivElement> {
+	container?: HTMLElement;
+}
 
 export const VerticalScrollBar = (props: VerticalScrollBarProps) => {
 	let scrollBarRef: HTMLDivElement | undefined;
