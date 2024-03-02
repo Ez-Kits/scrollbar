@@ -21,5 +21,12 @@ Custom scrollbar in ez-way
 ## ✨ Features
 
 **Agnostics:** Core of Ez Scrollbar is wrote with Vanilla Javascript.
+
 **Headless UI:** You can fully customize your scrollbar without css overriding.
+
+## Documentation
+
+Still in progress...
+
+Please checkout folder `examples`.
 <br>
