@@ -1,4 +1,3 @@
-import type { ScrollBarOptions } from "@ez-kits/scrollbar-core";
 import type { PropType, StyleValue } from "vue";
 
 type ClassValue = string | Record<string, boolean>;
@@ -8,8 +7,9 @@ export interface AxisScrollBarProps {
 	container?: HTMLElement;
 	autoHide?: boolean;
 	style?: StyleValue;
-	modifier?: ScrollBarOptions["modifier"];
 	updateStyle?: boolean;
+	startOffset?: number;
+	endOffset?: number;
 }
 
 export function axisScrollBarProps() {
@@ -32,8 +32,12 @@ export function axisScrollBarProps() {
 			required: false,
 			default: true,
 		},
-		modifier: {
-			type: Function as PropType<ScrollBarOptions["modifier"]>,
+		startOffset: {
+			type: Number as PropType<number>,
+			required: false,
+		},
+		endOffset: {
+			type: Number as PropType<number>,
 			required: false,
 		},
 		style: {

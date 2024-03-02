@@ -6,9 +6,7 @@ import { createEffect, onCleanup, type JSX } from "solid-js";
 
 export interface HorizontalScrollBarProps
 	extends Omit<ScrollBarOptions, "scrollBar">,
-		JSX.HTMLAttributes<HTMLDivElement> {
-	style?: JSX.CSSProperties;
-}
+		JSX.HTMLAttributes<HTMLDivElement> {}
 
 export const HorizontalScrollBar = (props: HorizontalScrollBarProps) => {
 	let scrollBarRef: HTMLDivElement | undefined;
@@ -16,18 +14,20 @@ export const HorizontalScrollBar = (props: HorizontalScrollBarProps) => {
 	const scrollBarInstance = new HorizontalScrollBarInstance({
 		container: props.container,
 		autoHide: props.autoHide,
-		modifier: props.modifier,
 		updateStyle: props.updateStyle,
 		scrollBar: scrollBarRef,
+		startOffset: props.startOffset,
+		endOffset: props.endOffset,
 	});
 
 	createEffect(() => {
 		scrollBarInstance.updateOptions({
 			container: props.container,
 			autoHide: props.autoHide,
-			modifier: props.modifier,
 			updateStyle: props.updateStyle,
 			scrollBar: scrollBarRef,
+			startOffset: props.startOffset,
+			endOffset: props.endOffset,
 		});
 
 		onCleanup(() => {

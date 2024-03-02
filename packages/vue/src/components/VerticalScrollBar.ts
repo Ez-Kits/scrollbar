@@ -18,7 +18,8 @@ export const VerticalScrollBar = defineComponent({
 			() => [
 				props.container,
 				props.autoHide,
-				props.modifier,
+				props.startOffset,
+				props.endOffset,
 				props.updateStyle,
 				scrollBarRef.value,
 			],
