@@ -7,11 +7,11 @@ Custom scrollbar in ez-way
 </p>
 
 <p align="center">
-	<a href="https://www.npmjs.com/package/@ez-kits/scrollbar" target="_blank">
-		<img src="https://img.shields.io/npm/v/@ez-kits/scrollbar.svg?label=&color=18C75B">
+	<a href="https://www.npmjs.com/package/@ez-kits/scrollbar-core" target="_blank">
+		<img src="https://img.shields.io/npm/v/@ez-kits/scrollbar-core.svg?label=&color=18C75B">
 	</a>
-	<a href="https://npm-stat.com/charts.html?package=@ez-kits/scrollbar" target="_blank">
-		<img src="https://img.shields.io/npm/dm/@ez-kits/scrollbar.svg?label=&color=F09E18">
+	<a href="https://npm-stat.com/charts.html?package=@ez-kits/scrollbar-core" target="_blank">
+		<img src="https://img.shields.io/npm/dm/@ez-kits/scrollbar-core.svg?label=&color=F09E18">
 	</a>
 </p>
 <br>
