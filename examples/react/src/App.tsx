@@ -4,13 +4,11 @@ const App = () => {
 	return (
 		<ScrollBar
 			style={{
-				height: 300,
-				width: 300,
+				height: "100dvh",
+				width: "100dvw",
 				overflow: "auto",
 				position: "relative",
 				scrollbarWidth: "none",
-				marginTop: 100,
-				marginLeft: 300,
 				whiteSpace: "nowrap",
 			}}
 			vertical={{
@@ -46,54 +44,57 @@ const App = () => {
 				dolore dignissimos provident consequatur explicabo dicta pariatur
 				assumenda ullam dolor vero repudiandae!
 			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-			<p>
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
+			{Array(5)
+				.fill(null)
+				.map((_, index) => (
+					<p key={index}>
+						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
+						tempore doloribus numquam? Maiores nostrum quisquam officia modi
+						quis, dolore dignissimos provident consequatur explicabo dicta
+						pariatur assumenda ullam dolor vero repudiandae!
+					</p>
+				))}
+			<ScrollBar
+				style={{
+					height: 300,
+					width: 300,
+					overflow: "auto",
+					position: "relative",
+					scrollbarWidth: "none",
+					whiteSpace: "nowrap",
+					marginLeft: 500,
+					border: "4px solid black",
+				}}
+				vertical={{
+					style: {
+						backgroundColor: "gray",
+						width: 5,
+					},
+					startOffset: 50,
+					endOffset: 50,
+				}}
+			>
+				{Array(50)
+					.fill(null)
+					.map((_, index) => (
+						<p key={index}>
+							Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
+							tempore doloribus numquam? Maiores nostrum quisquam officia modi
+							quis, dolore dignissimos provident consequatur explicabo dicta
+							pariatur assumenda ullam dolor vero repudiandae!
+						</p>
+					))}
+			</ScrollBar>
+			{Array(5)
+				.fill(null)
+				.map((_, index) => (
+					<p key={index}>
+						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
+						tempore doloribus numquam? Maiores nostrum quisquam officia modi
+						quis, dolore dignissimos provident consequatur explicabo dicta
+						pariatur assumenda ullam dolor vero repudiandae!
+					</p>
+				))}
 			<p
 				style={{
 					position: "sticky",

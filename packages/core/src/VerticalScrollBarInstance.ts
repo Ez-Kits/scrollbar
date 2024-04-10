@@ -10,7 +10,7 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 			return;
 		}
 
-		scrollBar.style.position = "absolute";
+		scrollBar.style.position = "fixed";
 		scrollBar.style.top = "0px";
 		scrollBar.style.right = "0px";
 	}
@@ -23,6 +23,7 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		this.setStore((state) => {
 			const containerSize = container.clientHeight - startOffset - endOffset;
 			const sizePercent = containerSize / container.clientHeight;
+
 			const newStoreState = {
 				...state,
 				size:
@@ -31,9 +32,7 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 					sizePercent,
 				offset:
 					(container.scrollTop / container.scrollHeight) * containerSize +
-					container.scrollTop +
 					startOffset,
-				crossOffset: container.scrollLeft,
 				containerSize,
 			};
 			newStoreState.visible = this.shouldShowScrollBar(newStoreState);
@@ -43,17 +42,31 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 	}
 
 	protected updateScrollBarStyle(): void {
-		const { scrollBar } = this.options;
-		const { size, offset, crossOffset, visible } = this.store;
+		const { scrollBar, container } = this.options;
+		const { size, offset, visible } = this.store;
 
 		if (!scrollBar) {
 			return;
 		}
 
+		const containerRect = container.getBoundingClientRect();
+		const borderRight = Number(
+			getComputedStyle(container)
+				.getPropertyValue("border-right-width")
+				.replace("px", "")
+		);
+
+		scrollBar.style.top = `${containerRect.top}px`;
+		scrollBar.style.left = `${
+			containerRect.left +
+			containerRect.width -
+			scrollBar.offsetWidth -
+			borderRight
+		}px`;
 		scrollBar.style.opacity = visible ? "1" : "0";
 		scrollBar.style.visibility = visible ? "visible" : "hidden";
 		scrollBar.style.height = `${size}px`;
-		scrollBar.style.transform = `translate3d(${crossOffset}px, ${offset}px, 0)`;
+		scrollBar.style.transform = `translateY(${offset}px)`;
 	}
 
 	protected onAutoHide(): void {
@@ -70,7 +83,11 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 	protected shouldShowScrollBar(store: ScrollBarStore): boolean {
 		const { containerSize, size, offset } = store;
 
-		if (this.isDraggingScrollBar || this.isHoveringScrollBar) {
+		if (
+			this.isDraggingScrollBar ||
+			this.isHoveringScrollBar ||
+			this.isScrolling
+		) {
 			return true;
 		}
 
@@ -100,7 +117,7 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		return show;
 	}
 
-	protected updateContainerScrollTop(delta: Coordinate): void {
+	protected updateContainerScrollOffset(delta: Coordinate): void {
 		const { container, startOffset = 0 } = this.options;
 		if (!container) {
 			return;
@@ -109,6 +126,7 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		const { containerSize } = this.store;
 
 		const newOffset =
+			this.startDragInfo.scrollOffset.y +
 			this.startDragInfo.offset +
 			delta.y -
 			this.startDragInfo.scrollOffset.y -

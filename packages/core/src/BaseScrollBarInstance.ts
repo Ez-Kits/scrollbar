@@ -15,6 +15,7 @@ export abstract class BaseScrollBarInstance {
 	protected isMouseEntered: boolean = false;
 	protected isHoveringScrollBar: boolean = false;
 	protected isDraggingScrollBar: boolean = false;
+	protected isScrolling: boolean = false;
 	protected startDragInfo: DraggingInfo = {
 		mouseCoordinate: { x: 0, y: 0 },
 		scrollOffset: {
@@ -34,7 +35,6 @@ export abstract class BaseScrollBarInstance {
 
 	constructor(options: Partial<ScrollBarOptions>) {
 		this.options = {
-			updateStyle: true,
 			autoHide: true,
 			startOffset: 0,
 			endOffset: 0,
@@ -44,7 +44,6 @@ export abstract class BaseScrollBarInstance {
 		this.store = {
 			size: 0,
 			offset: 0,
-			crossOffset: 0,
 			containerSize: 0,
 			visible: false,
 		};
@@ -57,8 +56,8 @@ export abstract class BaseScrollBarInstance {
 
 	private onStoreChange() {
 		clearTimeout(this.autoHideTimeout);
-		const { scrollBar, updateStyle } = this.options;
-		const { size, offset, crossOffset, visible } = this.store;
+		const { scrollBar } = this.options;
+		const { size, offset, visible } = this.store;
 
 		if (!scrollBar) {
 			return;
@@ -67,12 +66,8 @@ export abstract class BaseScrollBarInstance {
 		scrollBar.setAttribute("data-visible", visible ? "true" : "false");
 		scrollBar.setAttribute("data-size", `${size}px`);
 		scrollBar.setAttribute("data-offset", `${offset}px`);
-		scrollBar.setAttribute("data-cross-offset", `${crossOffset}px`);
 
-		if (updateStyle) {
-			this.updateScrollBarStyle();
-		}
-
+		this.updateScrollBarStyle();
 		this.autoHideTimeout = setTimeout(() => {
 			if (this.isHoveringScrollBar || this.isDraggingScrollBar) {
 				return;
@@ -82,9 +77,7 @@ export abstract class BaseScrollBarInstance {
 				scrollBar.setAttribute("data-visible", "false");
 			}
 
-			if (updateStyle) {
-				this.onAutoHide();
-			}
+			this.onAutoHide();
 		}, 500);
 	}
 
@@ -92,7 +85,6 @@ export abstract class BaseScrollBarInstance {
 		this.options = {
 			...this.options,
 			...options,
-			updateStyle: options.updateStyle ?? this.options.updateStyle ?? true,
 			autoHide: options.autoHide ?? this.options.autoHide ?? true,
 		};
 		this.unmount();
@@ -136,7 +128,10 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private handleScroll = (e: Event) => {
-		this.updateStore();
+		requestAnimationFrame(() => {
+			this.isScrolling = true;
+			this.updateStore();
+		});
 	};
 
 	protected abstract onMount(): void;
@@ -206,10 +201,11 @@ export abstract class BaseScrollBarInstance {
 
 	updateMouseCoordinate(e: MouseEvent) {
 		const target = e.currentTarget as HTMLElement;
+		const containerRect = target.getBoundingClientRect();
 
 		this.mouseCoordinate = {
-			x: e.clientX - target.offsetLeft,
-			y: e.clientY - target.offsetTop,
+			x: Math.abs(e.clientX - containerRect.left),
+			y: Math.abs(e.clientY - containerRect.top),
 		};
 		this.updateStore();
 	}
@@ -273,7 +269,7 @@ export abstract class BaseScrollBarInstance {
 			offset: 0,
 		};
 
-		this.updateContainerScrollTop({
+		this.updateContainerScrollOffset({
 			x:
 				this.currentDragInfo.mouseCoordinate.x -
 				this.startDragInfo.mouseCoordinate.x,
@@ -283,5 +279,5 @@ export abstract class BaseScrollBarInstance {
 		});
 	};
 
-	protected abstract updateContainerScrollTop(delta: Coordinate): void;
+	protected abstract updateContainerScrollOffset(delta: Coordinate): void;
 }

@@ -34,8 +34,6 @@ export const ScrollBar = ({
 	const debounceUpdateContainer = useMemo(
 		() =>
 			debounce((el: HTMLDivElement | null): void => {
-				console.log(el);
-
 				setContainer(el || undefined);
 			}, 100),
 		[]

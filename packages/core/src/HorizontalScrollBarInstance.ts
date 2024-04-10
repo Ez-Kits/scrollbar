@@ -10,7 +10,7 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 			return;
 		}
 
-		scrollBar.style.position = "absolute";
+		scrollBar.style.position = "fixed";
 		scrollBar.style.left = "0px";
 		scrollBar.style.bottom = "0px";
 	}
@@ -34,10 +34,8 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 					sizePercent,
 				offset:
 					(container.scrollLeft / container.scrollWidth) * containerSize +
-					container.scrollLeft +
 					startOffset,
 				containerSize,
-				crossOffset: container.scrollTop,
 			};
 			newStoreState.visible = this.shouldShowScrollBar(newStoreState);
 
@@ -46,17 +44,31 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 	}
 
 	protected updateScrollBarStyle(): void {
-		const { scrollBar } = this.options;
-		const { size, offset, crossOffset, visible } = this.store;
+		const { scrollBar, container } = this.options;
+		const { size, offset, visible } = this.store;
 
 		if (!scrollBar) {
 			return;
 		}
 
+		const containerRect = container.getBoundingClientRect();
+		const borderBottom = Number(
+			getComputedStyle(container)
+				.getPropertyValue("border-bottom-width")
+				.replace("px", "")
+		);
+
+		scrollBar.style.left = `${containerRect.left}px`;
+		scrollBar.style.top = `${
+			containerRect.top +
+			containerRect.height -
+			scrollBar.offsetHeight -
+			borderBottom
+		}px`;
 		scrollBar.style.opacity = visible ? "1" : "0";
 		scrollBar.style.visibility = visible ? "visible" : "hidden";
 		scrollBar.style.width = `${size}px`;
-		scrollBar.style.transform = `translate3d(${offset}px, ${crossOffset}px, 0)`;
+		scrollBar.style.transform = `translateX(${offset}px)`;
 	}
 
 	protected onAutoHide(): void {
@@ -75,7 +87,11 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 	protected shouldShowScrollBar(store: ScrollBarStore): boolean {
 		const { containerSize, size, offset } = store;
 
-		if (this.isDraggingScrollBar || this.isHoveringScrollBar) {
+		if (
+			this.isDraggingScrollBar ||
+			this.isHoveringScrollBar ||
+			this.isScrolling
+		) {
 			return true;
 		}
 
@@ -105,7 +121,7 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		return show;
 	}
 
-	protected updateContainerScrollTop(delta: Coordinate): void {
+	protected updateContainerScrollOffset(delta: Coordinate): void {
 		const { container, startOffset = 0 } = this.options;
 		if (!container) {
 			return;
@@ -114,6 +130,7 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		const { containerSize } = this.store;
 
 		const newOffset =
+			this.startDragInfo.scrollOffset.x +
 			this.startDragInfo.offset +
 			delta.x -
 			this.startDragInfo.scrollOffset.x -

@@ -10,11 +10,6 @@ export interface ScrollBarStore {
 	 */
 	offset: number;
 	/**
-	 * Cross offset of scrollbar.
-	 * Is offset left with Vertical Scrollbar and offset top with Horizontal ScrollBar
-	 */
-	crossOffset: number;
-	/**
 	 * Size of container.
 	 * Is height with Vertical Scrollbar and width with Horizontal ScrollBar
 	 */
@@ -35,11 +30,6 @@ export interface ScrollBarOptions {
 	 * Scrollbar element
 	 */
 	scrollBar?: HTMLElement;
-
-	/**
-	 * Should update scrollbar style
-	 */
-	updateStyle?: boolean;
 
 	/**
 	 * Should scrollbar automatically hide
