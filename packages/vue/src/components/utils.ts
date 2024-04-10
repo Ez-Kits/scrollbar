@@ -7,7 +7,6 @@ export interface AxisScrollBarProps {
 	container?: HTMLElement;
 	autoHide?: boolean;
 	style?: StyleValue;
-	updateStyle?: boolean;
 	startOffset?: number;
 	endOffset?: number;
 }
@@ -23,11 +22,6 @@ export function axisScrollBarProps() {
 			required: false,
 		},
 		autoHide: {
-			type: Boolean as PropType<boolean>,
-			required: false,
-			default: true,
-		},
-		updateStyle: {
 			type: Boolean as PropType<boolean>,
 			required: false,
 			default: true,

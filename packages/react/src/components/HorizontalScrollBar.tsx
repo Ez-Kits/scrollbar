@@ -22,7 +22,6 @@ export const HorizontalScrollBar = ({
 	autoHide = true,
 	startOffset,
 	endOffset,
-	updateStyle,
 	...props
 }: HorizontalScrollBarProps) => {
 	const scrollBarRef = useRef<HTMLDivElement>(null);
@@ -35,7 +34,6 @@ export const HorizontalScrollBar = ({
 				startOffset,
 				endOffset,
 				autoHide,
-				updateStyle,
 			})
 	);
 
@@ -45,7 +43,6 @@ export const HorizontalScrollBar = ({
 		startOffset,
 		endOffset,
 		autoHide,
-		updateStyle,
 	});
 
 	useEffect(() => {

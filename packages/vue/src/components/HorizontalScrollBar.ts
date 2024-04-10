@@ -20,7 +20,6 @@ export const HorizontalScrollBar = defineComponent({
 				props.autoHide,
 				props.startOffset,
 				props.endOffset,
-				props.updateStyle,
 				scrollBarRef.value,
 			],
 			() => {

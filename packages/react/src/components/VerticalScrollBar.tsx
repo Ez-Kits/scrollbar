@@ -22,7 +22,6 @@ export const VerticalScrollBar = ({
 	startOffset,
 	endOffset,
 	autoHide = true,
-	updateStyle,
 	...props
 }: VerticalScrollBarProps) => {
 	const scrollBarRef = useRef<HTMLDivElement>(null);
@@ -35,7 +34,6 @@ export const VerticalScrollBar = ({
 				startOffset,
 				endOffset,
 				autoHide,
-				updateStyle,
 			})
 	);
 
@@ -45,7 +43,6 @@ export const VerticalScrollBar = ({
 		startOffset,
 		endOffset,
 		autoHide,
-		updateStyle,
 	});
 
 	useEffect(() => {
@@ -55,7 +52,6 @@ export const VerticalScrollBar = ({
 			startOffset,
 			endOffset,
 			autoHide,
-			updateStyle,
 		});
 
 		return () => {

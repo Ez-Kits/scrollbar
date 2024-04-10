@@ -16,7 +16,6 @@ export const HorizontalScrollBar = (props: HorizontalScrollBarProps) => {
 	const scrollBarInstance = new HorizontalScrollBarInstance({
 		container: props.container,
 		autoHide: props.autoHide,
-		updateStyle: props.updateStyle,
 		scrollBar: scrollBarRef,
 		startOffset: props.startOffset,
 		endOffset: props.endOffset,
@@ -26,7 +25,6 @@ export const HorizontalScrollBar = (props: HorizontalScrollBarProps) => {
 		scrollBarInstance.updateOptions({
 			container: props.container,
 			autoHide: props.autoHide,
-			updateStyle: props.updateStyle,
 			scrollBar: scrollBarRef,
 			startOffset: props.startOffset,
 			endOffset: props.endOffset,
