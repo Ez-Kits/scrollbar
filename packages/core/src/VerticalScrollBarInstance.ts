@@ -82,13 +82,14 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 
 	protected shouldShowScrollBar(store: ScrollBarStore): boolean {
 		const { containerSize, size, offset } = store;
+		const { startOffset = 0, endOffset = 0 } = this.options;
 
 		if (
 			this.isDraggingScrollBar ||
 			this.isHoveringScrollBar ||
 			this.isScrolling
 		) {
-			return true;
+			return size < containerSize;
 		}
 
 		if (offset === this.oldOffset) {

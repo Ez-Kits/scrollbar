@@ -66,6 +66,12 @@ export abstract class BaseScrollBarInstance {
 		scrollBar.setAttribute("data-visible", visible ? "true" : "false");
 		scrollBar.setAttribute("data-size", `${size}px`);
 		scrollBar.setAttribute("data-offset", `${offset}px`);
+		scrollBar.style.setProperty(
+			"--scrollbar-visibility",
+			visible ? "visible" : "hidden"
+		);
+		scrollBar.style.setProperty("--scrollbar-size", `${size}px`);
+		scrollBar.style.setProperty("--scrollbar-offset", `${offset}px`);
 
 		this.updateScrollBarStyle();
 		this.autoHideTimeout = setTimeout(() => {
@@ -75,8 +81,10 @@ export abstract class BaseScrollBarInstance {
 
 			if (scrollBar) {
 				scrollBar.setAttribute("data-visible", "false");
+				scrollBar.style.setProperty("--scrollbar-visibility", "hidden");
 			}
 
+			this.isScrolling = false;
 			this.onAutoHide();
 		}, 500);
 	}
