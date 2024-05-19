@@ -6,7 +6,7 @@ const App = () => {
 			style={{
 				height: "100dvh",
 				width: "100dvw",
-				overflow: "auto",
+				overflowY: "auto",
 				position: "relative",
 				scrollbarWidth: "none",
 				whiteSpace: "nowrap",
@@ -37,6 +37,7 @@ const App = () => {
 					height: 50,
 					margin: 0,
 					overflow: "hidden",
+					maxWidth: "100%",
 				}}
 			>
 				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
@@ -77,7 +78,12 @@ const App = () => {
 				{Array(50)
 					.fill(null)
 					.map((_, index) => (
-						<p key={index}>
+						<p
+							key={index}
+							style={{
+								overflowX: "hidden",
+							}}
+						>
 							Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
 							tempore doloribus numquam? Maiores nostrum quisquam officia modi
 							quis, dolore dignissimos provident consequatur explicabo dicta
@@ -88,7 +94,12 @@ const App = () => {
 			{Array(5)
 				.fill(null)
 				.map((_, index) => (
-					<p key={index}>
+					<p
+						key={index}
+						style={{
+							overflowX: "hidden",
+						}}
+					>
 						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
 						tempore doloribus numquam? Maiores nostrum quisquam officia modi
 						quis, dolore dignissimos provident consequatur explicabo dicta

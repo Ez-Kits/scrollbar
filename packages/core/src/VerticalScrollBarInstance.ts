@@ -21,15 +21,19 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		this.oldOffset = this.store.offset;
 
 		this.setStore((state) => {
-			const containerSize = container.clientHeight - startOffset - endOffset;
-			const sizePercent = containerSize / container.clientHeight;
+			const containerSize = container.offsetHeight - startOffset - endOffset;
+			const sizePercent = containerSize / container.offsetHeight;
+
+			const containerStyle = window.getComputedStyle(container);
+			const shouldCalculate = containerStyle.overflowY !== "hidden";
 
 			const newStoreState = {
 				...state,
-				size:
-					(container.clientHeight / container.scrollHeight) *
-					container.clientHeight *
-					sizePercent,
+				size: shouldCalculate
+					? (container.offsetHeight / container.scrollHeight) *
+					  container.offsetHeight *
+					  sizePercent
+					: containerSize,
 				offset:
 					(container.scrollTop / container.scrollHeight) * containerSize +
 					startOffset,
@@ -82,21 +86,21 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 
 	protected shouldShowScrollBar(store: ScrollBarStore): boolean {
 		const { containerSize, size, offset } = store;
-		const { startOffset = 0, endOffset = 0 } = this.options;
 
+		const shouldShow = size < containerSize;
 		if (
 			this.isDraggingScrollBar ||
 			this.isHoveringScrollBar ||
 			this.isScrolling
 		) {
-			return size < containerSize;
+			return shouldShow;
 		}
 
 		if (offset === this.oldOffset) {
-			return this.isMouseInScrollBar();
+			return this.isMouseInScrollBar() && shouldShow;
 		}
 
-		return size < containerSize;
+		return shouldShow;
 	}
 
 	// --------------------------------------

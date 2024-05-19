@@ -24,14 +24,19 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		this.oldOffset = this.store.offset;
 
 		this.setStore((state) => {
-			const containerSize = container.clientWidth - startOffset - endOffset;
-			const sizePercent = containerSize / container.clientWidth;
+			const containerSize = container.offsetWidth - startOffset - endOffset;
+			const sizePercent = containerSize / container.offsetWidth;
+
+			const containerStyle = window.getComputedStyle(container);
+			const shouldCalculate = containerStyle.overflowX !== "hidden";
+
 			const newStoreState = {
 				...state,
-				size:
-					(container.clientWidth / container.scrollWidth) *
-					container.clientWidth *
-					sizePercent,
+				size: shouldCalculate
+					? (container.offsetWidth / container.scrollWidth) *
+					  container.offsetWidth *
+					  sizePercent
+					: containerSize,
 				offset:
 					(container.scrollLeft / container.scrollWidth) * containerSize +
 					startOffset,
@@ -86,21 +91,21 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 
 	protected shouldShowScrollBar(store: ScrollBarStore): boolean {
 		const { containerSize, size, offset } = store;
-		const { startOffset = 0, endOffset = 0 } = this.options;
 
+		const shouldShow = size < containerSize;
 		if (
 			this.isDraggingScrollBar ||
 			this.isHoveringScrollBar ||
 			this.isScrolling
 		) {
-			return size < containerSize;
+			return shouldShow;
 		}
 
 		if (offset === this.oldOffset) {
-			return this.isMouseInScrollBar();
+			return this.isMouseInScrollBar() && shouldShow;
 		}
 
-		return size < containerSize;
+		return shouldShow;
 	}
 
 	// --------------------------------------
