@@ -4,6 +4,7 @@ import {
 	ScrollBarOptions,
 	ScrollBarStore,
 } from "src/types";
+import { debounce } from "src/utils";
 
 export abstract class BaseScrollBarInstance {
 	protected options: ScrollBarOptions;
@@ -119,11 +120,21 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private addListeners() {
-		const { container } = this.options;
+		const { container, scrollBar } = this.options;
 
 		container && container.addEventListener("scroll", this.handleScroll);
-		this.resizeObserver = new ResizeObserver(() => {
+
+		const debounceUpdateStore = debounce(() => {
 			this.updateStore();
+		}, 100);
+
+		this.resizeObserver = new ResizeObserver(() => {
+			if (scrollBar) {
+				scrollBar.style.opacity = "0";
+				scrollBar.style.visibility = "hidden";
+			}
+
+			debounceUpdateStore();
 		});
 
 		this.addDraggingListeners();

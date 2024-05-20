@@ -13,6 +13,8 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		scrollBar.style.position = "fixed";
 		scrollBar.style.left = "0px";
 		scrollBar.style.bottom = "0px";
+		scrollBar.style.opacity = "0";
+		scrollBar.style.visibility = "hidden";
 	}
 
 	protected updateStore() {

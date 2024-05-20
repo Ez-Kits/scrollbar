@@ -13,6 +13,8 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		scrollBar.style.position = "fixed";
 		scrollBar.style.top = "0px";
 		scrollBar.style.right = "0px";
+		scrollBar.style.opacity = "0";
+		scrollBar.style.visibility = "hidden";
 	}
 
 	protected updateStore() {
