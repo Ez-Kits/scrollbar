@@ -75,7 +75,7 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		scrollBar.style.transform = `translateY(${offset}px)`;
 	}
 
-	protected onAutoHide(): void {
+	protected onHide(): void {
 		const { scrollBar } = this.options;
 
 		if (!scrollBar) {

@@ -76,17 +76,7 @@ export abstract class BaseScrollBarInstance {
 
 		this.updateScrollBarStyle();
 		this.autoHideTimeout = setTimeout(() => {
-			if (this.isHoveringScrollBar || this.isDraggingScrollBar) {
-				return;
-			}
-
-			if (scrollBar) {
-				scrollBar.setAttribute("data-visible", "false");
-				scrollBar.style.setProperty("--scrollbar-visibility", "hidden");
-			}
-
-			this.isScrolling = false;
-			this.onAutoHide();
+			this.hide();
 		}, 500);
 	}
 
@@ -138,12 +128,14 @@ export abstract class BaseScrollBarInstance {
 		});
 
 		this.addDraggingListeners();
+		this.addDocumentScrollListener();
 	}
 
 	private removeListeners() {
 		const { container } = this.options;
 		container && container.removeEventListener("scroll", this.handleScroll);
 		this.removeDraggingListeners();
+		this.removeDocumentScrollListener();
 	}
 
 	private handleScroll = (e: Event) => {
@@ -153,10 +145,26 @@ export abstract class BaseScrollBarInstance {
 		});
 	};
 
+	hide() {
+		if (this.isHoveringScrollBar || this.isDraggingScrollBar) {
+			return;
+		}
+
+		const { scrollBar } = this.options;
+
+		if (scrollBar) {
+			scrollBar.setAttribute("data-visible", "false");
+			scrollBar.style.setProperty("--scrollbar-visibility", "hidden");
+		}
+
+		this.isScrolling = false;
+		this.onHide();
+	}
+
 	protected abstract onMount(): void;
 	protected abstract updateStore(): void;
 	protected abstract updateScrollBarStyle(): void;
-	protected abstract onAutoHide(): void;
+	protected abstract onHide(): void;
 	protected abstract shouldShowScrollBar(store: ScrollBarStore): boolean;
 
 	// --------------------------------------
@@ -299,4 +307,30 @@ export abstract class BaseScrollBarInstance {
 	};
 
 	protected abstract updateContainerScrollOffset(delta: Coordinate): void;
+
+	// --------------------------------------
+	// HANDLE OTHERS SCROLL
+	// --------------------------------------
+
+	handleOtherScroll = (e: Event) => {
+		const el = e.target;
+
+		if (!(el instanceof HTMLElement)) {
+			return;
+		}
+
+		if (el === this.options.container) {
+			return;
+		}
+
+		this.hide();
+	};
+
+	addDocumentScrollListener() {
+		document.addEventListener("scroll", this.handleOtherScroll, true);
+	}
+
+	removeDocumentScrollListener() {
+		document.removeEventListener("scroll", this.handleOtherScroll, true);
+	}
 }
