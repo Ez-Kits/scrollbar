@@ -193,9 +193,7 @@ export abstract class BaseScrollBarInstance {
 		scrollBar.addEventListener("mouseleave", this.handleScrollBarMouseLeave, {
 			passive: true,
 		});
-		scrollBar.addEventListener("mousedown", this.handleScrollBarMouseDown, {
-			passive: true,
-		});
+		scrollBar.addEventListener("mousedown", this.handleScrollBarMouseDown);
 
 		document.body.addEventListener("mouseup", this.handleBodyMouseUp, {
 			passive: true,
@@ -258,6 +256,8 @@ export abstract class BaseScrollBarInstance {
 		if (!container) {
 			return;
 		}
+
+		e.preventDefault();
 
 		this.isDraggingScrollBar = true;
 		this.startDragInfo = {
