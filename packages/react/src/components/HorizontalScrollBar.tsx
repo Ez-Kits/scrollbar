@@ -46,10 +46,8 @@ export const HorizontalScrollBar = ({
 	});
 
 	useEffect(() => {
-		return () => {
-			scrollBarInstance.unmount();
-		};
-	}, []);
+		return scrollBarInstance.mount();
+	}, [scrollBarInstance]);
 
 	return <div {...props} ref={scrollBarRef} />;
 };

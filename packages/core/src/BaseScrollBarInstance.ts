@@ -12,6 +12,7 @@ export abstract class BaseScrollBarInstance {
 	private autoHideTimeout?: NodeJS.Timeout;
 	store: ScrollBarStore;
 
+	protected isMounted: boolean = false;
 	protected mouseCoordinate: Coordinate = { x: 0, y: 0 };
 	protected isMouseEntered: boolean = false;
 	protected isHoveringScrollBar: boolean = false;
@@ -33,6 +34,8 @@ export abstract class BaseScrollBarInstance {
 		},
 		offset: 0,
 	};
+
+	private eventAbortController = new AbortController();
 
 	constructor(options: Partial<ScrollBarOptions>) {
 		this.options = {
@@ -56,7 +59,6 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private onStoreChange() {
-		clearTimeout(this.autoHideTimeout);
 		const { scrollBar } = this.options;
 		const { size, offset, visible } = this.store;
 
@@ -75,19 +77,30 @@ export abstract class BaseScrollBarInstance {
 		scrollBar.style.setProperty("--scrollbar-offset", `${offset}px`);
 
 		this.updateScrollBarStyle();
-		this.autoHideTimeout = setTimeout(() => {
-			this.hide();
-		}, 500);
+		if (this.options.autoHide) {
+			this.debounceHide();
+		}
 	}
 
 	updateOptions(options: Partial<ScrollBarOptions>) {
+		const isScrollbarElementChanged =
+			options.scrollBar !== this.options.scrollBar;
+		const isContainerChanged = options.container !== this.options.container;
 		this.options = {
 			...this.options,
 			...options,
 			autoHide: options.autoHide ?? this.options.autoHide ?? true,
 		};
-		this.unmount();
-		this.mount();
+
+		if (isScrollbarElementChanged || isContainerChanged) {
+			this.removeListeners();
+			this.addListeners();
+			this.initialScrollBarElement();
+		}
+
+		if (isContainerChanged) {
+			this.updateStore();
+		}
 	}
 
 	mount() {
@@ -95,8 +108,8 @@ export abstract class BaseScrollBarInstance {
 		this.options.container &&
 			this.resizeObserver?.observe(this.options.container);
 
-		this.onMount();
-
+		this.initialScrollBarElement();
+		this.updateStore();
 		return () => {
 			this.unmount();
 		};
@@ -109,22 +122,27 @@ export abstract class BaseScrollBarInstance {
 		this.resizeObserver?.disconnect();
 	}
 
+	private debounceHide = debounce(() => {
+		this.hide();
+	}, 500);
+
 	private addListeners() {
 		const { container, scrollBar } = this.options;
 
-		container && container.addEventListener("scroll", this.handleScroll);
-
-		const debounceUpdateStore = debounce(() => {
-			this.updateStore();
-		}, 100);
+		this.eventAbortController = new AbortController();
+		container &&
+			container.addEventListener("scroll", this.handleScroll, {
+				capture: true,
+				signal: this.eventAbortController.signal,
+			});
 
 		this.resizeObserver = new ResizeObserver(() => {
-			if (scrollBar) {
+			if (scrollBar && this.options.autoHide) {
 				scrollBar.style.opacity = "0";
 				scrollBar.style.visibility = "hidden";
 			}
 
-			debounceUpdateStore();
+			this.updateStore();
 		});
 
 		this.addDraggingListeners();
@@ -132,10 +150,7 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private removeListeners() {
-		const { container } = this.options;
-		container && container.removeEventListener("scroll", this.handleScroll);
-		this.removeDraggingListeners();
-		this.removeDocumentScrollListener();
+		this.eventAbortController.abort();
 	}
 
 	private handleScroll = (e: Event) => {
@@ -161,7 +176,7 @@ export abstract class BaseScrollBarInstance {
 		this.onHide();
 	}
 
-	protected abstract onMount(): void;
+	protected abstract initialScrollBarElement(): void;
 	protected abstract updateStore(): void;
 	protected abstract updateScrollBarStyle(): void;
 	protected abstract onHide(): void;
@@ -177,50 +192,50 @@ export abstract class BaseScrollBarInstance {
 			return;
 		}
 
-		container.addEventListener("mousemove", this.handleMouseMove, {
+		document.body.addEventListener("pointermove", this.handleMouseMove, {
 			passive: true,
+			capture: true,
+			signal: this.eventAbortController.signal,
 		});
-		container.addEventListener("mouseenter", this.handleMouseEnter, {
+		container.addEventListener("pointerenter", this.handleMouseEnter, {
 			passive: true,
+			capture: true,
+			signal: this.eventAbortController.signal,
 		});
-		container.addEventListener("mouseleave", this.handleMouseLeave, {
+		container.addEventListener("pointerleave", this.handleMouseLeave, {
 			passive: true,
+			capture: true,
+			signal: this.eventAbortController.signal,
 		});
 
-		scrollBar.addEventListener("mouseenter", this.handleScrollBarMouseEnter, {
+		scrollBar.addEventListener("pointerenter", this.handleScrollBarMouseEnter, {
 			passive: true,
+			capture: true,
+			signal: this.eventAbortController.signal,
 		});
-		scrollBar.addEventListener("mouseleave", this.handleScrollBarMouseLeave, {
+		scrollBar.addEventListener("pointerleave", this.handleScrollBarMouseLeave, {
 			passive: true,
+			capture: true,
+			signal: this.eventAbortController.signal,
 		});
-		scrollBar.addEventListener("mousedown", this.handleScrollBarMouseDown);
+		scrollBar.addEventListener("pointerdown", this.handleScrollBarMouseDown, {
+			capture: true,
+			signal: this.eventAbortController.signal,
+		});
 
-		document.body.addEventListener("mouseup", this.handleBodyMouseUp, {
+		document.body.addEventListener("pointerup", this.handleBodyMouseUp, {
 			passive: true,
+			capture: true,
+			signal: this.eventAbortController.signal,
 		});
-		document.body.addEventListener("mousemove", this.handleBodyMouseMove);
-	}
-
-	removeDraggingListeners() {
-		const { container, scrollBar } = this.options;
-
-		if (!container || !scrollBar) {
-			return;
-		}
-
-		container.removeEventListener("mousemove", this.handleMouseMove);
-		container.removeEventListener("mouseenter", this.handleMouseEnter);
-		container.removeEventListener("mouseleave", this.handleMouseLeave);
-
-		scrollBar.removeEventListener("mouseenter", this.handleScrollBarMouseEnter);
-		scrollBar.removeEventListener("mouseleave", this.handleScrollBarMouseLeave);
-		scrollBar.removeEventListener("mousedown", this.handleScrollBarMouseDown);
-
-		document.body.removeEventListener("mouseup", this.handleBodyMouseUp);
-		document.body.removeEventListener("mousemove", this.handleBodyMouseMove);
+		document.body.addEventListener("pointermove", this.handleBodyMouseMove, {
+			capture: true,
+			signal: this.eventAbortController.signal,
+		});
 	}
 
 	handleMouseMove = (e: MouseEvent) => {
+		console.log(e);
 		this.updateMouseCoordinate(e);
 	};
 
@@ -239,7 +254,11 @@ export abstract class BaseScrollBarInstance {
 		this.isMouseEntered = false;
 	};
 
-	handleMouseEnter = () => {
+	handleMouseEnter = (e: MouseEvent) => {
+		if (!this.isOnlyLeftButton(e)) {
+			return;
+		}
+
 		this.isMouseEntered = true;
 	};
 
@@ -252,12 +271,17 @@ export abstract class BaseScrollBarInstance {
 	};
 
 	handleScrollBarMouseDown = (e: MouseEvent) => {
+		if (!this.isOnlyLeftButton(e)) {
+			return;
+		}
+
 		const { container } = this.options;
 		if (!container) {
 			return;
 		}
 
-		e.preventDefault();
+		// e.preventDefault();
+		document.body.style.userSelect = "none";
 
 		this.isDraggingScrollBar = true;
 		this.startDragInfo = {
@@ -275,6 +299,7 @@ export abstract class BaseScrollBarInstance {
 
 	handleBodyMouseUp = () => {
 		this.isDraggingScrollBar = false;
+		document.body.style.userSelect = "auto";
 	};
 
 	handleBodyMouseMove = (e: MouseEvent) => {
@@ -282,7 +307,7 @@ export abstract class BaseScrollBarInstance {
 			return;
 		}
 
-		e.preventDefault();
+		// e.preventDefault();
 
 		this.currentDragInfo = {
 			mouseCoordinate: {
@@ -327,10 +352,19 @@ export abstract class BaseScrollBarInstance {
 	};
 
 	addDocumentScrollListener() {
-		document.addEventListener("scroll", this.handleOtherScroll, true);
+		document.addEventListener("scroll", this.handleOtherScroll, {
+			capture: true,
+			signal: this.eventAbortController.signal,
+		});
 	}
 
-	removeDocumentScrollListener() {
-		document.removeEventListener("scroll", this.handleOtherScroll, true);
+	// --------------------------------------
+	// POINTER EVENTS UTILITIES
+	// --------------------------------------
+
+	private isOnlyLeftButton(e: MouseEvent) {
+		console.log(e.button);
+
+		return e.button === 0;
 	}
 }

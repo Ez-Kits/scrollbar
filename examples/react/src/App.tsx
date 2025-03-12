@@ -1,6 +1,7 @@
 import { ScrollBar } from "@ez-kits/scrollbar-react";
-
+import { VirtualList } from "./VirtualList";
 const App = () => {
+	return <VirtualList />;
 	return (
 		<ScrollBar
 			style={{

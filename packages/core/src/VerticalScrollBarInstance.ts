@@ -4,8 +4,8 @@ import { Coordinate, ScrollBarStore } from "src/types";
 export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 	private oldOffset: number = 0;
 
-	protected onMount(): void {
-		const { scrollBar } = this.options;
+	protected initialScrollBarElement(): void {
+		const { scrollBar, autoHide } = this.options;
 		if (!scrollBar) {
 			return;
 		}
@@ -13,12 +13,18 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		scrollBar.style.position = "fixed";
 		scrollBar.style.top = "0px";
 		scrollBar.style.right = "0px";
-		scrollBar.style.opacity = "0";
-		scrollBar.style.visibility = "hidden";
+
+		if (autoHide) {
+			scrollBar.style.opacity = "0";
+			scrollBar.style.visibility = "hidden";
+		}
 	}
 
 	protected updateStore() {
 		const { container, startOffset = 0, endOffset = 0 } = this.options;
+		if (!container) {
+			return;
+		}
 
 		this.oldOffset = this.store.offset;
 
@@ -61,6 +67,16 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 				.getPropertyValue("border-right-width")
 				.replace("px", "")
 		);
+		const scrollBarMinHeight = Number(
+			getComputedStyle(scrollBar)
+				.getPropertyValue("min-height")
+				.replace("px", "")
+		);
+
+		const computedOffset =
+			offset > 0
+				? offset - (size > scrollBarMinHeight ? 0 : scrollBarMinHeight - size)
+				: 0;
 
 		scrollBar.style.top = `${containerRect.top}px`;
 		scrollBar.style.left = `${
@@ -72,7 +88,9 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		scrollBar.style.opacity = visible ? "1" : "0";
 		scrollBar.style.visibility = visible ? "visible" : "hidden";
 		scrollBar.style.height = `${size}px`;
-		scrollBar.style.transform = `translateY(${offset}px)`;
+		scrollBar.style.transform = `translateY(${
+			computedOffset < 0 ? 0 : computedOffset
+		}px)`;
 	}
 
 	protected onHide(): void {
@@ -90,6 +108,10 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		const { containerSize, size, offset } = store;
 
 		const shouldShow = size < containerSize;
+		if (!this.options.autoHide) {
+			return shouldShow;
+		}
+
 		if (
 			this.isDraggingScrollBar ||
 			this.isHoveringScrollBar ||
