@@ -4,8 +4,8 @@ import { Coordinate, ScrollBarStore } from "src/types";
 export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 	private oldOffset: number = 0;
 
-	protected onMount(): void {
-		const { scrollBar } = this.options;
+	protected initialScrollBarElement(): void {
+		const { scrollBar, autoHide } = this.options;
 		if (!scrollBar) {
 			return;
 		}
@@ -13,8 +13,11 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		scrollBar.style.position = "fixed";
 		scrollBar.style.left = "0px";
 		scrollBar.style.bottom = "0px";
-		scrollBar.style.opacity = "0";
-		scrollBar.style.visibility = "hidden";
+
+		if (autoHide) {
+			scrollBar.style.opacity = "0";
+			scrollBar.style.visibility = "hidden";
+		}
 	}
 
 	protected updateStore() {
@@ -64,6 +67,16 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 				.getPropertyValue("border-bottom-width")
 				.replace("px", "")
 		);
+		const scrollBarMinWidth = Number(
+			getComputedStyle(scrollBar)
+				.getPropertyValue("min-width")
+				.replace("px", "")
+		);
+
+		const computedOffset =
+			offset > 0
+				? offset - (size > scrollBarMinWidth ? 0 : scrollBarMinWidth - size)
+				: 0;
 
 		scrollBar.style.left = `${containerRect.left}px`;
 		scrollBar.style.top = `${
@@ -75,7 +88,9 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		scrollBar.style.opacity = visible ? "1" : "0";
 		scrollBar.style.visibility = visible ? "visible" : "hidden";
 		scrollBar.style.width = `${size}px`;
-		scrollBar.style.transform = `translateX(${offset}px)`;
+		scrollBar.style.transform = `translateX(${
+			computedOffset < 0 ? 0 : computedOffset
+		}px)`;
 	}
 
 	protected onHide(): void {
@@ -95,6 +110,10 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		const { containerSize, size, offset } = store;
 
 		const shouldShow = size < containerSize;
+		if (!this.options.autoHide) {
+			return shouldShow;
+		}
+
 		if (
 			this.isDraggingScrollBar ||
 			this.isHoveringScrollBar ||

@@ -46,18 +46,8 @@ export const VerticalScrollBar = ({
 	});
 
 	useEffect(() => {
-		scrollBarInstance.updateOptions({
-			container: maybeRefToValue(container) || undefined,
-			scrollBar: scrollBarRef.current || undefined,
-			startOffset,
-			endOffset,
-			autoHide,
-		});
-
-		return () => {
-			scrollBarInstance.unmount();
-		};
-	}, []);
+		return scrollBarInstance.mount();
+	}, [scrollBarInstance]);
 
 	return <div {...props} ref={scrollBarRef}></div>;
 };
