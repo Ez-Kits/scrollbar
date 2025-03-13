@@ -194,7 +194,7 @@ export abstract class BaseScrollBarInstance {
 			return;
 		}
 
-		document.body.addEventListener("pointermove", this.handleMouseMove, {
+		container.addEventListener("pointermove", this.handleMouseMove, {
 			passive: true,
 			capture: true,
 			signal: this.eventAbortController.signal,

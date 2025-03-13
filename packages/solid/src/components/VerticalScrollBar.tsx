@@ -20,6 +20,10 @@ export const VerticalScrollBar = (props: VerticalScrollBarProps) => {
 		startOffset: props.startOffset,
 		endOffset: props.endOffset,
 	});
+	scrollBarInstance.mount();
+	onCleanup(() => {
+		scrollBarInstance.unmount();
+	});
 
 	createEffect(() => {
 		scrollBarInstance.updateOptions({
@@ -28,10 +32,6 @@ export const VerticalScrollBar = (props: VerticalScrollBarProps) => {
 			scrollBar: scrollBarRef,
 			startOffset: props.startOffset,
 			endOffset: props.endOffset,
-		});
-
-		onCleanup(() => {
-			scrollBarInstance.unmount();
 		});
 	});
 

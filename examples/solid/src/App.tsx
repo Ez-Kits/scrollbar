@@ -15,18 +15,6 @@ const App = () => {
 					"background-color": "black",
 					width: "5px",
 				},
-				modifier: (store, container) => {
-					const containerSize = container.clientHeight - 100;
-					return {
-						...store,
-						containerSize,
-						size:
-							(container.clientHeight / container.scrollHeight) * store.size,
-						offset:
-							(container.scrollTop / container.scrollHeight) * containerSize +
-							container.scrollTop,
-					};
-				},
 			}}
 			horizontal={{
 				class: "vertical-scrollbar",

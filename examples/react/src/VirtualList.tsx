@@ -25,7 +25,6 @@ export function VirtualList() {
 		>
 			<VerticalScrollBar
 				container={parentRef}
-				autoHide={false}
 				style={{
 					width: 10,
 					backgroundColor: "black",
