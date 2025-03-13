@@ -20,6 +20,10 @@ export const HorizontalScrollBar = (props: HorizontalScrollBarProps) => {
 		startOffset: props.startOffset,
 		endOffset: props.endOffset,
 	});
+	scrollBarInstance.mount();
+	onCleanup(() => {
+		scrollBarInstance.unmount();
+	});
 
 	createEffect(() => {
 		scrollBarInstance.updateOptions({
@@ -28,10 +32,6 @@ export const HorizontalScrollBar = (props: HorizontalScrollBarProps) => {
 			scrollBar: scrollBarRef,
 			startOffset: props.startOffset,
 			endOffset: props.endOffset,
-		});
-
-		onCleanup(() => {
-			scrollBarInstance.unmount();
 		});
 	});
 
