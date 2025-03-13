@@ -31,6 +31,9 @@ export function VirtualList() {
 					backgroundColor: "black",
 					zIndex: 1000,
 					minHeight: "1rem",
+					position: "absolute",
+					right: 0,
+					top: 0,
 				}}
 			/>
 			<div

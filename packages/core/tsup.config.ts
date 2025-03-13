@@ -20,7 +20,7 @@ export default defineConfig({
 	keepNames: true,
 	esbuildOptions: (options) => {
 		options.target = "es2015";
-		// options.drop = ["console", "debugger"];
-		// options.pure = ["console.log"];
+		options.drop = ["console", "debugger"];
+		options.pure = ["console.log"];
 	},
 });

@@ -36,6 +36,7 @@ export abstract class BaseScrollBarInstance {
 	};
 
 	private eventAbortController = new AbortController();
+	private oldUserSelect: string = "";
 
 	constructor(options: Partial<ScrollBarOptions>) {
 		this.options = {
@@ -151,6 +152,7 @@ export abstract class BaseScrollBarInstance {
 
 	private removeListeners() {
 		this.eventAbortController.abort();
+		this.resizeObserver?.disconnect();
 	}
 
 	private handleScroll = (e: Event) => {
@@ -222,8 +224,13 @@ export abstract class BaseScrollBarInstance {
 			capture: true,
 			signal: this.eventAbortController.signal,
 		});
+		scrollBar.addEventListener("wheel", this.handleScrollBarWheel, {
+			passive: false,
+			capture: true,
+			signal: this.eventAbortController.signal,
+		});
 
-		document.body.addEventListener("pointerup", this.handleBodyMouseUp, {
+		window.addEventListener("pointerup", this.handleBodyMouseUp, {
 			passive: true,
 			capture: true,
 			signal: this.eventAbortController.signal,
@@ -235,7 +242,6 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	handleMouseMove = (e: MouseEvent) => {
-		console.log(e);
 		this.updateMouseCoordinate(e);
 	};
 
@@ -281,6 +287,7 @@ export abstract class BaseScrollBarInstance {
 		}
 
 		// e.preventDefault();
+		this.oldUserSelect = document.body.style.userSelect;
 		document.body.style.userSelect = "none";
 
 		this.isDraggingScrollBar = true;
@@ -299,7 +306,7 @@ export abstract class BaseScrollBarInstance {
 
 	handleBodyMouseUp = () => {
 		this.isDraggingScrollBar = false;
-		document.body.style.userSelect = "auto";
+		document.body.style.userSelect = this.oldUserSelect;
 	};
 
 	handleBodyMouseMove = (e: MouseEvent) => {
@@ -329,6 +336,17 @@ export abstract class BaseScrollBarInstance {
 				this.currentDragInfo.mouseCoordinate.y -
 				this.startDragInfo.mouseCoordinate.y,
 		});
+	};
+
+	handleScrollBarWheel = (e: WheelEvent) => {
+		const { container } = this.options;
+		if (!container) {
+			return;
+		}
+
+		e.preventDefault();
+		container.scrollLeft += e.deltaX;
+		container.scrollTop += e.deltaY;
 	};
 
 	protected abstract updateContainerScrollOffset(delta: Coordinate): void;
@@ -363,8 +381,6 @@ export abstract class BaseScrollBarInstance {
 	// --------------------------------------
 
 	private isOnlyLeftButton(e: MouseEvent) {
-		console.log(e.button);
-
 		return e.button === 0;
 	}
 }
