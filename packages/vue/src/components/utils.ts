@@ -16,10 +16,6 @@ export interface AxisScrollBarProps {
 
 export function axisScrollBarProps() {
 	return {
-		class: {
-			type: [String, Object, Array] as PropType<ClassValue | ClassValue[]>,
-			required: false,
-		},
 		container: {
 			type: Object as PropType<HTMLElement>,
 			required: false,
@@ -36,11 +32,6 @@ export function axisScrollBarProps() {
 		endOffset: {
 			type: Number as PropType<number>,
 			required: false,
-		},
-		style: {
-			type: [String, Object, Array] as PropType<StyleValue>,
-			required: false,
-			default: true,
 		},
 		withTrack: {
 			type: Boolean as PropType<boolean>,

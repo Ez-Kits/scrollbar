@@ -1,5 +1,5 @@
 import { ScrollBar } from "@ez-kits/scrollbar-solid";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 
 export function ContainerSizeChange() {
 	const [containerSize, setContainerSize] = createSignal(300);
@@ -9,7 +9,9 @@ export function ContainerSizeChange() {
 			setContainerSize(300 + Math.random() * 200);
 		}, 1000);
 
-		return () => clearInterval(timer);
+		onCleanup(() => {
+			clearInterval(timer);
+		});
 	});
 
 	return (

@@ -1,15 +1,15 @@
-import { ScrollBar } from "@ez-kits/scrollbar-react";
+import { ScrollBar } from "@ez-kits/scrollbar-solid";
 
 export const ScrollBarPositionAbsolute = () => {
 	return (
-		<div className="relative inline-block">
+		<div class="relative inline-block">
 			<ScrollBar
 				style={{
-					height: 300,
-					width: 300,
+					height: "300px",
+					width: "300px",
 					overflow: "auto",
-					scrollbarWidth: "none",
-					whiteSpace: "nowrap",
+					"scrollbar-width": "none",
+					"white-space": "nowrap",
 					border: "4px solid black",
 				}}
 				// vertical={{
@@ -32,15 +32,14 @@ export const ScrollBarPositionAbsolute = () => {
 					startOffset: 50,
 					endOffset: 50,
 					trackProps: {
-						className:
+						class:
 							"!w-1.5 bg-blue-500 !absolute !top-[50px] !right-1 !left-auto",
-						// style: {
-						// 	width: 5,
-						// 	backgroundColor: "blue",
-						// },
 					},
 					thumbProps: {
-						className: "!bg-",
+						style: {
+							"background-color": "gray",
+							width: "5px",
+						},
 					},
 					withTrack: true,
 				}}
@@ -48,7 +47,7 @@ export const ScrollBarPositionAbsolute = () => {
 					startOffset: 50,
 					endOffset: 50,
 					trackProps: {
-						className:
+						class:
 							"!h-1.5 bg-blue-500 !absolute !top-auto !bottom-1 !left-[50px]",
 						// style: {
 						// 	height: 5,
@@ -56,8 +55,8 @@ export const ScrollBarPositionAbsolute = () => {
 					},
 					thumbProps: {
 						style: {
-							backgroundColor: "gray",
-							height: 5,
+							"background-color": "gray",
+							height: "5px",
 						},
 					},
 					withTrack: true,
@@ -66,7 +65,7 @@ export const ScrollBarPositionAbsolute = () => {
 				{Array(50)
 					.fill(null)
 					.map((_, index) => (
-						<p key={index}>
+						<p>
 							Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
 							tempore doloribus numquam? Maiores nostrum quisquam officia modi
 							quis, dolore dignissimos provident consequatur explicabo dicta

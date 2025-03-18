@@ -5,7 +5,7 @@ import { defineComponent, h, onBeforeUnmount, ref, watch } from "vue";
 export const HorizontalScrollBar = defineComponent({
 	inheritAttrs: true,
 	props: axisScrollBarProps(),
-	setup(props) {
+	setup(props, { attrs }) {
 		const trackRef = ref<HTMLDivElement>();
 		const thumbRef = ref<HTMLDivElement>();
 
@@ -44,22 +44,19 @@ export const HorizontalScrollBar = defineComponent({
 						"div",
 						{
 							ref: trackRef,
-							class: props.class,
-							style: props.style,
+							...attrs,
 							...props.trackProps,
 						},
 						() =>
 							h("div", {
 								ref: thumbRef,
-								class: props.class,
-								style: props.style,
+								...attrs,
 								...props.thumbProps,
 							})
 				  )
 				: h("div", {
 						ref: thumbRef,
-						class: props.class,
-						style: props.style,
+						...attrs,
 				  });
 	},
 });

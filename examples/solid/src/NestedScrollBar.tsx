@@ -1,28 +1,28 @@
-import { ScrollBar } from "@ez-kits/scrollbar-react";
+import { ScrollBar } from "@ez-kits/scrollbar-solid";
 
 export function NestedScrollBar() {
 	return (
 		<ScrollBar
 			style={{
-				height: 600,
-				width: 600,
-				overflowY: "auto",
+				height: "600px",
+				width: "600px",
+				"overflow-y": "auto",
 				position: "relative",
-				scrollbarWidth: "none",
-				whiteSpace: "nowrap",
+				"scrollbar-width": "none",
+				"white-space": "nowrap",
 			}}
 			vertical={{
 				style: {
-					backgroundColor: "black",
-					width: 5,
+					"background-color": "black",
+					width: "5px",
 				},
 				startOffset: 50,
 				endOffset: 50,
 			}}
 			horizontal={{
 				style: {
-					backgroundColor: "black",
-					height: 5,
+					"background-color": "black",
+					height: "5px",
 				},
 				startOffset: 50,
 				endOffset: 50,
@@ -34,10 +34,10 @@ export function NestedScrollBar() {
 					top: 0,
 					left: 0,
 					background: "gray",
-					height: 50,
+					height: "50px",
 					margin: 0,
 					overflow: "hidden",
-					maxWidth: "100%",
+					"max-width": "100%",
 				}}
 			>
 				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
@@ -48,7 +48,7 @@ export function NestedScrollBar() {
 			{Array(5)
 				.fill(null)
 				.map((_, index) => (
-					<p key={index}>
+					<p>
 						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
 						tempore doloribus numquam? Maiores nostrum quisquam officia modi
 						quis, dolore dignissimos provident consequatur explicabo dicta
@@ -58,21 +58,21 @@ export function NestedScrollBar() {
 
 			<ScrollBar
 				style={{
-					height: 300,
-					width: 300,
+					height: "300px",
+					width: "300px",
 					overflow: "auto",
-					scrollbarWidth: "none",
+					"scrollbar-width": "none",
 				}}
 				vertical={{
 					style: {
-						backgroundColor: "black",
-						width: 5,
+						"background-color": "black",
+						width: "5px",
 					},
 				}}
 				horizontal={{
 					style: {
-						backgroundColor: "black",
-						height: 5,
+						"background-color": "black",
+						height: "5px",
 					},
 				}}
 			>
@@ -80,9 +80,8 @@ export function NestedScrollBar() {
 					.fill(null)
 					.map((_, index) => (
 						<p
-							key={index}
 							style={{
-								overflowX: "hidden",
+								"overflow-x": "hidden",
 							}}
 						>
 							Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
@@ -97,9 +96,8 @@ export function NestedScrollBar() {
 				.fill(null)
 				.map((_, index) => (
 					<p
-						key={index}
 						style={{
-							overflowX: "hidden",
+							"overflow-x": "hidden",
 						}}
 					>
 						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
@@ -114,7 +112,7 @@ export function NestedScrollBar() {
 					bottom: 0,
 					left: 0,
 					background: "gray",
-					height: 50,
+					height: "50px",
 					margin: 0,
 					overflow: "hidden",
 				}}
