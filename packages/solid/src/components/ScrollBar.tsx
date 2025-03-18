@@ -13,13 +13,13 @@ export interface ScrollBarProps extends JSX.HTMLAttributes<HTMLDivElement> {
 	 * Horizontal scrollbar props
 	 * @default true
 	 */
-	horizontal?: boolean | Omit<HorizontalScrollBarProps, "container">;
+	horizontal?: boolean | HorizontalScrollBarProps;
 
 	/**
 	 * Vertical scrollbar props
 	 * @default true
 	 */
-	vertical?: boolean | Omit<VerticalScrollBarProps, "container">;
+	vertical?: boolean | VerticalScrollBarProps;
 }
 
 export const ScrollBar = ({

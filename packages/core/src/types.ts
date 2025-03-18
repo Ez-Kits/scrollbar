@@ -27,9 +27,14 @@ export interface ScrollBarOptions {
 	container: HTMLElement;
 
 	/**
-	 * Scrollbar element
+	 * Scrollbar Thumb element
 	 */
-	scrollBar?: HTMLElement;
+	thumb?: HTMLElement;
+
+	/**
+	 * Scrollbar Track element
+	 */
+	track?: HTMLElement;
 
 	/**
 	 * Should scrollbar automatically hide

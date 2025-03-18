@@ -9,10 +9,9 @@ import { debounce } from "src/utils";
 export abstract class BaseScrollBarInstance {
 	protected options: ScrollBarOptions;
 	protected resizeObserver?: ResizeObserver;
-	private autoHideTimeout?: NodeJS.Timeout;
 	store: ScrollBarStore;
 
-	protected isMounted: boolean = false;
+	protected oldOffset: number = 0;
 	protected mouseCoordinate: Coordinate = { x: 0, y: 0 };
 	protected isMouseEntered: boolean = false;
 	protected isHoveringScrollBar: boolean = false;
@@ -52,30 +51,41 @@ export abstract class BaseScrollBarInstance {
 			containerSize: 0,
 			visible: false,
 		};
+
+		this.validateThumbAndTrackElement();
 	}
 
 	protected setStore(updater: (store: ScrollBarStore) => ScrollBarStore) {
+		this.oldOffset = this.store.offset;
 		this.store = updater(this.store);
 		this.onStoreChange();
 	}
 
 	private onStoreChange() {
-		const { scrollBar } = this.options;
+		const { thumb, track } = this.options;
 		const { size, offset, visible } = this.store;
 
-		if (!scrollBar) {
-			return;
+		if (track) {
+			track.setAttribute("data-visible", visible ? "true" : "false");
+			track.setAttribute("data-size", `${size}px`);
+			track.setAttribute("data-offset", `${offset}px`);
+			track.style.setProperty(
+				"--scrollbar-visibility",
+				visible ? "visible" : "hidden"
+			);
+			track.style.setProperty("--scrollbar-size", `${size}px`);
+			track.style.setProperty("--scrollbar-offset", `${offset}px`);
+		} else if (thumb) {
+			thumb.setAttribute("data-visible", visible ? "true" : "false");
+			thumb.setAttribute("data-size", `${size}px`);
+			thumb.setAttribute("data-offset", `${offset}px`);
+			thumb.style.setProperty(
+				"--scrollbar-visibility",
+				visible ? "visible" : "hidden"
+			);
+			thumb.style.setProperty("--scrollbar-size", `${size}px`);
+			thumb.style.setProperty("--scrollbar-offset", `${offset}px`);
 		}
-
-		scrollBar.setAttribute("data-visible", visible ? "true" : "false");
-		scrollBar.setAttribute("data-size", `${size}px`);
-		scrollBar.setAttribute("data-offset", `${offset}px`);
-		scrollBar.style.setProperty(
-			"--scrollbar-visibility",
-			visible ? "visible" : "hidden"
-		);
-		scrollBar.style.setProperty("--scrollbar-size", `${size}px`);
-		scrollBar.style.setProperty("--scrollbar-offset", `${offset}px`);
 
 		this.updateScrollBarStyle();
 		if (this.options.autoHide) {
@@ -84,8 +94,8 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	updateOptions(options: Partial<ScrollBarOptions>) {
-		const isScrollbarElementChanged =
-			options.scrollBar !== this.options.scrollBar;
+		const isScrollbarElementChanged = options.thumb !== this.options.thumb;
+		const isTrackElementChanged = options.track !== this.options.track;
 		const isContainerChanged = options.container !== this.options.container;
 		this.options = {
 			...this.options,
@@ -93,24 +103,31 @@ export abstract class BaseScrollBarInstance {
 			autoHide: options.autoHide ?? this.options.autoHide ?? true,
 		};
 
-		if (isScrollbarElementChanged || isContainerChanged) {
+		if (isScrollbarElementChanged || isTrackElementChanged) {
+			this.validateThumbAndTrackElement();
+		}
+
+		if (
+			isScrollbarElementChanged ||
+			isTrackElementChanged ||
+			isContainerChanged
+		) {
 			this.removeListeners();
 			this.addListeners();
 			this.initialScrollBarElement();
 		}
 
-		if (isContainerChanged) {
+		if (isContainerChanged || isTrackElementChanged) {
 			this.updateStore();
 		}
 	}
 
 	mount() {
+		this.validateThumbAndTrackElement();
 		this.addListeners();
-		this.options.container &&
-			this.resizeObserver?.observe(this.options.container);
-
 		this.initialScrollBarElement();
 		this.updateStore();
+
 		return () => {
 			this.unmount();
 		};
@@ -118,9 +135,54 @@ export abstract class BaseScrollBarInstance {
 
 	unmount() {
 		this.removeListeners();
-		this.options.container &&
-			this.resizeObserver?.unobserve(this.options.container);
-		this.resizeObserver?.disconnect();
+	}
+
+	private validateThumbAndTrackElement() {
+		const { track, thumb } = this.options;
+
+		if (!track || !thumb) {
+			return;
+		}
+
+		if (!track.contains(thumb)) {
+			throw new Error("Track element must contain thumb element");
+		}
+	}
+
+	private initialScrollBarElement(): void {
+		const { thumb, track, autoHide } = this.options;
+
+		if (!thumb) {
+			return;
+		}
+
+		if (track) {
+			track.style.position = "fixed";
+			track.style.left = "0px";
+			track.style.top = "0px";
+
+			if (autoHide) {
+				track.style.opacity = "0";
+				track.style.visibility = "hidden";
+			}
+
+			thumb.style.position = "absolute";
+			thumb.style.left = "0px";
+			thumb.style.top = "0px";
+			thumb.style.height = "100%";
+			return;
+		}
+
+		if (thumb) {
+			thumb.style.position = "fixed";
+			thumb.style.left = "0px";
+			thumb.style.top = "0px";
+
+			if (autoHide) {
+				thumb.style.opacity = "0";
+				thumb.style.visibility = "hidden";
+			}
+		}
 	}
 
 	private debounceHide = debounce(() => {
@@ -128,7 +190,7 @@ export abstract class BaseScrollBarInstance {
 	}, 500);
 
 	private addListeners() {
-		const { container, scrollBar } = this.options;
+		const { container } = this.options;
 
 		this.eventAbortController = new AbortController();
 		container &&
@@ -138,13 +200,20 @@ export abstract class BaseScrollBarInstance {
 			});
 
 		this.resizeObserver = new ResizeObserver(() => {
-			if (scrollBar && this.options.autoHide) {
-				scrollBar.style.opacity = "0";
-				scrollBar.style.visibility = "hidden";
+			const { autoHide, thumb, track } = this.options;
+			if (autoHide) {
+				if (track) {
+					track.style.opacity = "0";
+					track.style.visibility = "hidden";
+				} else if (thumb) {
+					thumb.style.opacity = "0";
+					thumb.style.visibility = "hidden";
+				}
 			}
 
 			this.updateStore();
 		});
+		container && this.resizeObserver.observe(container);
 
 		this.addDraggingListeners();
 		this.addDocumentScrollListener();
@@ -167,30 +236,43 @@ export abstract class BaseScrollBarInstance {
 			return;
 		}
 
-		const { scrollBar } = this.options;
+		const { thumb, track } = this.options;
+		if (!thumb) {
+			return;
+		}
+		this.isScrolling = false;
 
-		if (scrollBar) {
-			scrollBar.setAttribute("data-visible", "false");
-			scrollBar.style.setProperty("--scrollbar-visibility", "hidden");
+		if (track) {
+			track.setAttribute("data-visible", "false");
+			track.style.setProperty("--scrollbar-visibility", "hidden");
+
+			requestAnimationFrame(() => {
+				track.style.opacity = "0";
+				track.style.visibility = "hidden";
+			});
+
+			return;
 		}
 
-		this.isScrolling = false;
-		this.onHide();
+		thumb.setAttribute("data-visible", "false");
+		thumb.style.setProperty("--scrollbar-visibility", "hidden");
+
+		requestAnimationFrame(() => {
+			thumb.style.opacity = "0";
+			thumb.style.visibility = "hidden";
+		});
 	}
 
-	protected abstract initialScrollBarElement(): void;
 	protected abstract updateStore(): void;
 	protected abstract updateScrollBarStyle(): void;
-	protected abstract onHide(): void;
-	protected abstract shouldShowScrollBar(store: ScrollBarStore): boolean;
 
 	// --------------------------------------
 	// DRAG SCROLLBAR TO SCROLL CONTAINER
 	// --------------------------------------
 
 	addDraggingListeners() {
-		const { container, scrollBar } = this.options;
-		if (!container || !scrollBar) {
+		const { container, thumb, track } = this.options;
+		if (!container || !thumb) {
 			return;
 		}
 
@@ -209,23 +291,45 @@ export abstract class BaseScrollBarInstance {
 			capture: true,
 			signal: this.eventAbortController.signal,
 		});
+		container.addEventListener(
+			"scrollend",
+			() => {
+				this.isScrolling = false;
+			},
+			{
+				passive: true,
+				capture: true,
+				signal: this.eventAbortController.signal,
+			}
+		);
 
-		scrollBar.addEventListener("pointerenter", this.handleScrollBarMouseEnter, {
-			passive: true,
-			capture: true,
-			signal: this.eventAbortController.signal,
-		});
-		scrollBar.addEventListener("pointerleave", this.handleScrollBarMouseLeave, {
-			passive: true,
-			capture: true,
-			signal: this.eventAbortController.signal,
-		});
-		scrollBar.addEventListener("pointerdown", this.handleScrollBarMouseDown, {
-			capture: true,
-			signal: this.eventAbortController.signal,
-		});
-		scrollBar.addEventListener("wheel", this.handleScrollBarWheel, {
+		const scrollBarEl = track || thumb;
+
+		scrollBarEl.addEventListener(
+			"pointerenter",
+			this.handleScrollBarMouseEnter,
+			{
+				passive: true,
+				capture: true,
+				signal: this.eventAbortController.signal,
+			}
+		);
+		scrollBarEl.addEventListener(
+			"pointerleave",
+			this.handleScrollBarMouseLeave,
+			{
+				passive: true,
+				capture: true,
+				signal: this.eventAbortController.signal,
+			}
+		);
+		scrollBarEl.addEventListener("wheel", this.handleScrollBarWheel, {
 			passive: false,
+			capture: true,
+			signal: this.eventAbortController.signal,
+		});
+
+		thumb.addEventListener("pointerdown", this.handleScrollBarMouseDown, {
 			capture: true,
 			signal: this.eventAbortController.signal,
 		});
@@ -256,12 +360,27 @@ export abstract class BaseScrollBarInstance {
 		this.updateStore();
 	}
 
-	handleMouseLeave = () => {
+	handleMouseLeave = (event: MouseEvent) => {
+		const target = event.target as HTMLElement;
+		const relatedTarget = event.relatedTarget as HTMLElement;
+
+		if (relatedTarget === target) {
+			return;
+		}
+
+		if (target !== this.options.container) {
+			return;
+		}
+
 		this.isMouseEntered = false;
+		this.isScrolling = false;
+		this.hide();
 	};
 
 	handleMouseEnter = (e: MouseEvent) => {
-		if (!this.isOnlyLeftButton(e)) {
+		const target = e.target as HTMLElement;
+
+		if (target !== this.options.container) {
 			return;
 		}
 
@@ -270,6 +389,7 @@ export abstract class BaseScrollBarInstance {
 
 	handleScrollBarMouseEnter = () => {
 		this.isHoveringScrollBar = true;
+		this.updateStore();
 	};
 
 	handleScrollBarMouseLeave = () => {
