@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ScrollBar } from "@ez-kits/scrollbar-vue";
 import NestedScrollBar from "./NestedScrollBar.vue";
-// import VirtualList from "./VirtualList.vue";
-// import ScrollBarPositionAbsolute from "./ScrollBarPositionAbsolute.vue";
+import VirtualList from "./VirtualList.vue";
+import ScrollBarPositionAbsolute from "./ScrollBarPositionAbsolute.vue";
 import ContainerSizeChange from "./ContainerSizeChange.vue";
 </script>
 
