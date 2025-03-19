@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ScrollBar } from "@ez-kits/scrollbar-vue";
-import { ref, onUnmounted } from "vue";
+import { onUnmounted, ref } from "vue";
 
 const containerSize = ref(100);
 
@@ -17,12 +17,12 @@ onUnmounted(() => {
 	<div class="relative inline-block">
 		<ScrollBar
 			:style="{
-				height: containerSize,
-				width: containerSize,
+				height: `${containerSize}px`,
+				width: `${containerSize}px`,
 				overflow: 'auto',
 				scrollbarWidth: 'none',
 				whiteSpace: 'nowrap',
-				marginLeft: 500,
+				marginLeft: '500px',
 				border: '4px solid black',
 			}"
 			:vertical="{
@@ -34,7 +34,7 @@ onUnmounted(() => {
 				thumbProps: {
 					style: {
 						backgroundColor: 'gray',
-						width: 5,
+						width: '5px',
 					},
 				},
 				withTrack: true,
@@ -44,13 +44,13 @@ onUnmounted(() => {
 				endOffset: 50,
 				trackProps: {
 					style: {
-						height: 5,
+						height: '5px',
 					},
 				},
 				thumbProps: {
 					style: {
 						backgroundColor: 'gray',
-						height: 5,
+						height: '5px',
 					},
 				},
 				withTrack: true,

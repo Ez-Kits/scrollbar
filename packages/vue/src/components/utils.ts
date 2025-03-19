@@ -36,7 +36,7 @@ export function axisScrollBarProps() {
 		withTrack: {
 			type: Boolean as PropType<boolean>,
 			required: false,
-			default: true,
+			default: false,
 		},
 		trackProps: {
 			type: Object as PropType<HTMLAttributes>,

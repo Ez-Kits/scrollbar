@@ -47,11 +47,10 @@ export const VerticalScrollBar = defineComponent({
 							...attrs,
 							...props.trackProps,
 						},
-						() =>
-							h("div", {
-								ref: thumbRef,
-								...props.thumbProps,
-							})
+						h("div", {
+							ref: thumbRef,
+							...props.thumbProps,
+						})
 				  )
 				: h("div", {
 						ref: thumbRef,
