@@ -1,13 +1,14 @@
-import { VerticalScrollBar } from "@ez-kits/scrollbar-react";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef } from "react";
+import { VerticalScrollBar } from "@ez-kits/scrollbar-solid";
+import { createVirtualizer } from "@tanstack/solid-virtual";
+import { createSignal } from "solid-js";
 
 export function VirtualList() {
-	const parentRef = useRef(null);
+	const [container, setContainer] = createSignal<HTMLDivElement>();
+	let parentEl: HTMLDivElement | null = null;
 
-	const rowVirtualizer = useVirtualizer({
+	const rowVirtualizer = createVirtualizer({
 		count: 100,
-		getScrollElement: () => parentRef.current,
+		getScrollElement: () => parentEl,
 		estimateSize: () => 35,
 		overscan: 5,
 	});
@@ -15,21 +16,24 @@ export function VirtualList() {
 	return (
 		<>
 			<VerticalScrollBar
-				container={parentRef}
+				container={container()}
 				style={{
-					width: 10,
-					backgroundColor: "black",
-					zIndex: 1000,
+					width: "10px",
+					"background-color": "black",
+					"z-index": 1000,
 				}}
 			/>
 			<div
-				ref={parentRef}
-				className="List"
+				ref={(el) => {
+					setContainer(el);
+					parentEl = el;
+				}}
+				class="List"
 				style={{
 					height: `200px`,
 					width: `400px`,
 					overflow: "auto",
-					scrollbarWidth: "none",
+					"scrollbar-width": "none",
 				}}
 			>
 				<div
@@ -41,8 +45,7 @@ export function VirtualList() {
 				>
 					{rowVirtualizer.getVirtualItems().map((virtualRow) => (
 						<div
-							key={virtualRow.index}
-							className={virtualRow.index % 2 ? "ListItemOdd" : "ListItemEven"}
+							class={virtualRow.index % 2 ? "ListItemOdd" : "ListItemEven"}
 							style={{
 								position: "absolute",
 								top: 0,

@@ -2,21 +2,30 @@ import {
 	VerticalScrollBarInstance,
 	type ScrollBarOptions,
 } from "@ez-kits/scrollbar-core";
-import { createEffect, onCleanup, type JSX } from "solid-js";
+import { createEffect, onCleanup } from "solid-js";
+import type { WithoutTrackProps, WithTrackProps } from "src/types";
 
-export interface VerticalScrollBarProps
-	extends Omit<Partial<ScrollBarOptions>, "scrollBar" | "container">,
-		JSX.HTMLAttributes<HTMLDivElement> {
+export type VerticalScrollBarProps = Omit<
+	Partial<ScrollBarOptions>,
+	"thumb" | "track" | "container"
+> &
+	(WithTrackProps | WithoutTrackProps);
+
+export type VerticalScrollBarWithContainerProps = VerticalScrollBarProps & {
 	container?: HTMLElement;
-}
+};
 
-export const VerticalScrollBar = (props: VerticalScrollBarProps) => {
-	let scrollBarRef: HTMLDivElement | undefined;
+export const VerticalScrollBar = (
+	props: VerticalScrollBarWithContainerProps
+) => {
+	let thumbRef: HTMLDivElement | undefined;
+	let trackRef: HTMLDivElement | undefined;
 
 	const scrollBarInstance = new VerticalScrollBarInstance({
 		container: props.container,
 		autoHide: props.autoHide,
-		scrollBar: scrollBarRef,
+		thumb: thumbRef,
+		track: trackRef,
 		startOffset: props.startOffset,
 		endOffset: props.endOffset,
 	});
@@ -26,14 +35,24 @@ export const VerticalScrollBar = (props: VerticalScrollBarProps) => {
 	});
 
 	createEffect(() => {
+		console.log("updateOptions", props);
 		scrollBarInstance.updateOptions({
 			container: props.container,
 			autoHide: props.autoHide,
-			scrollBar: scrollBarRef,
+			thumb: thumbRef,
+			track: trackRef,
 			startOffset: props.startOffset,
 			endOffset: props.endOffset,
 		});
 	});
 
-	return <div {...props} ref={scrollBarRef}></div>;
+	if (props.withTrack) {
+		return (
+			<div {...props.trackProps} ref={trackRef}>
+				<div {...props.thumbProps} ref={thumbRef} />
+			</div>
+		);
+	}
+
+	return <div {...props} ref={thumbRef} />;
 };

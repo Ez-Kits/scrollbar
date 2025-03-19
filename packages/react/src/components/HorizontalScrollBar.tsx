@@ -2,35 +2,39 @@ import {
 	HorizontalScrollBarInstance,
 	type ScrollBarOptions,
 } from "@ez-kits/scrollbar-core";
-import {
-	useEffect,
-	useRef,
-	useState,
-	type HTMLAttributes,
-	type RefObject,
-} from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import type { WithoutTrackProps, WithTrackProps } from "src/types";
 import { maybeRefToValue } from "src/utilities";
 
-export interface HorizontalScrollBarProps
-	extends Omit<Partial<ScrollBarOptions>, "scrollBar" | "container">,
-		HTMLAttributes<HTMLDivElement> {
+export type HorizontalScrollBarProps = Omit<
+	Partial<ScrollBarOptions>,
+	"thumb" | "track" | "container"
+> &
+	(WithTrackProps | WithoutTrackProps);
+
+export type HorizontalScrollBarWithContainerProps = HorizontalScrollBarProps & {
 	container?: HTMLElement | RefObject<HTMLElement | null | undefined>;
-}
+};
 
 export const HorizontalScrollBar = ({
 	container,
 	autoHide = true,
 	startOffset,
 	endOffset,
+	withTrack = false,
+	thumbProps = {},
+	trackProps = {},
 	...props
-}: HorizontalScrollBarProps) => {
-	const scrollBarRef = useRef<HTMLDivElement>(null);
+}: HorizontalScrollBarWithContainerProps) => {
+	const trackRef = useRef<HTMLDivElement>(null);
+	const thumbRef = useRef<HTMLDivElement>(null);
 
 	const [scrollBarInstance] = useState(
 		() =>
 			new HorizontalScrollBarInstance({
 				container: maybeRefToValue(container) || undefined,
-				scrollBar: scrollBarRef.current || undefined,
+				thumb: thumbRef.current || undefined,
+				track: trackRef.current || undefined,
 				startOffset,
 				endOffset,
 				autoHide,
@@ -39,7 +43,8 @@ export const HorizontalScrollBar = ({
 
 	scrollBarInstance.updateOptions({
 		container: maybeRefToValue(container) || undefined,
-		scrollBar: scrollBarRef.current || undefined,
+		thumb: thumbRef.current || undefined,
+		track: trackRef.current || undefined,
 		startOffset,
 		endOffset,
 		autoHide,
@@ -49,5 +54,13 @@ export const HorizontalScrollBar = ({
 		return scrollBarInstance.mount();
 	}, [scrollBarInstance]);
 
-	return <div {...props} ref={scrollBarRef} />;
+	if (withTrack) {
+		return (
+			<div {...props} ref={trackRef} {...trackProps}>
+				<div ref={thumbRef} {...thumbProps} />
+			</div>
+		);
+	}
+
+	return <div {...props} ref={thumbRef} />;
 };

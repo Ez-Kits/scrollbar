@@ -2,31 +2,11 @@ import { BaseScrollBarInstance } from "src/BaseScrollBarInstance";
 import { Coordinate, ScrollBarStore } from "src/types";
 
 export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
-	private oldOffset: number = 0;
-
-	protected initialScrollBarElement(): void {
-		const { scrollBar, autoHide } = this.options;
-		if (!scrollBar) {
-			return;
-		}
-
-		scrollBar.style.position = "fixed";
-		scrollBar.style.left = "0px";
-		scrollBar.style.bottom = "0px";
-
-		if (autoHide) {
-			scrollBar.style.opacity = "0";
-			scrollBar.style.visibility = "hidden";
-		}
-	}
-
 	protected updateStore() {
 		const { container, startOffset = 0, endOffset = 0 } = this.options;
 		if (!container) {
 			return;
 		}
-
-		this.oldOffset = this.store.offset;
 
 		this.setStore((state) => {
 			const containerSize = container.offsetWidth - startOffset - endOffset;
@@ -42,9 +22,7 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 					  container.offsetWidth *
 					  sizePercent
 					: containerSize,
-				offset:
-					(container.scrollLeft / container.scrollWidth) * containerSize +
-					startOffset,
+				offset: (container.scrollLeft / container.scrollWidth) * containerSize,
 				containerSize,
 			};
 			newStoreState.visible = this.shouldShowScrollBar(newStoreState);
@@ -54,10 +32,10 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 	}
 
 	protected updateScrollBarStyle(): void {
-		const { scrollBar, container } = this.options;
-		const { size, offset, visible } = this.store;
+		const { thumb, track, container, startOffset = 0 } = this.options;
+		const { size, offset, containerSize, visible } = this.store;
 
-		if (!scrollBar) {
+		if (!thumb) {
 			return;
 		}
 
@@ -67,43 +45,44 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 				.getPropertyValue("border-bottom-width")
 				.replace("px", "")
 		);
-		const scrollBarMinWidth = Number(
-			getComputedStyle(scrollBar)
-				.getPropertyValue("min-width")
-				.replace("px", "")
-		);
+		const scrollBarHeight = track ? track.offsetHeight : thumb.offsetHeight;
+		const computedTop =
+			containerRect.top + containerRect.height - scrollBarHeight - borderBottom;
+		const computedLeft = containerRect.left + startOffset;
 
-		const computedOffset =
-			offset > 0
-				? offset - (size > scrollBarMinWidth ? 0 : scrollBarMinWidth - size)
-				: 0;
-
-		scrollBar.style.left = `${containerRect.left}px`;
-		scrollBar.style.top = `${
-			containerRect.top +
-			containerRect.height -
-			scrollBar.offsetHeight -
-			borderBottom
-		}px`;
-		scrollBar.style.opacity = visible ? "1" : "0";
-		scrollBar.style.visibility = visible ? "visible" : "hidden";
-		scrollBar.style.width = `${size}px`;
-		scrollBar.style.transform = `translateX(${
-			computedOffset < 0 ? 0 : computedOffset
-		}px)`;
-	}
-
-	protected onHide(): void {
-		const { scrollBar } = this.options;
-
-		if (!scrollBar) {
-			return;
+		if (track) {
+			track.style.left = `${computedLeft}px`;
+			track.style.top = `${computedTop}px`;
+			track.style.width = `${containerSize}px`;
+			track.style.opacity = visible ? "1" : "0";
+			track.style.visibility = visible ? "visible" : "hidden";
+		} else {
+			thumb.style.left = `${computedLeft}px`;
+			thumb.style.top = `${computedTop}px`;
+			thumb.style.opacity = visible ? "1" : "0";
+			thumb.style.visibility = visible ? "visible" : "hidden";
 		}
 
-		requestAnimationFrame(() => {
-			scrollBar.style.opacity = "0";
-			scrollBar.style.visibility = "hidden";
-		});
+		const thumbMinWidth = Number(
+			getComputedStyle(thumb).getPropertyValue("min-width").replace("px", "")
+		);
+
+		const computedSize = size > thumbMinWidth ? size : thumbMinWidth;
+		let computedOffset =
+			offset > 0
+				? offset - (size > thumbMinWidth ? 0 : thumbMinWidth - size)
+				: 0;
+
+		if (computedOffset < 0) {
+			computedOffset = 0;
+		}
+
+		if (computedOffset > containerSize - computedSize) {
+			computedOffset = containerSize - computedSize;
+		}
+
+		thumb.style.width = `${computedSize}px`;
+		thumb.style.transform = `translateX(${computedOffset}px)`;
 	}
 
 	protected shouldShowScrollBar(store: ScrollBarStore): boolean {
@@ -133,17 +112,16 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 	// DRAG SCROLLBAR TO SCROLL CONTAINER
 	// --------------------------------------
 	private isMouseInScrollBar() {
-		const { scrollBar, container, startOffset = 0 } = this.options;
+		const { track, container, startOffset = 0 } = this.options;
 
-		if (!scrollBar || !container) {
+		if (!track || !container) {
 			return false;
 		}
 
 		const show =
 			this.mouseCoordinate.x >= startOffset &&
 			this.mouseCoordinate.x <= this.store.containerSize + startOffset &&
-			container.clientHeight - this.mouseCoordinate.y <=
-				scrollBar.clientHeight * 1.5;
+			container.clientHeight - this.mouseCoordinate.y <= track.clientHeight;
 
 		return show;
 	}

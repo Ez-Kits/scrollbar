@@ -17,13 +17,14 @@ export const ScrollBar = defineComponent({
 			default: () => true,
 		},
 	},
-	setup(props, { slots }) {
+	setup(props, { slots, attrs }) {
 		const containerRef = ref<HTMLDivElement>();
 		return () =>
 			h(
 				"div",
 				{
 					ref: containerRef,
+					...attrs,
 				},
 				[
 					slots.default?.(),

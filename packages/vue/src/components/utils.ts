@@ -1,4 +1,4 @@
-import type { PropType, StyleValue } from "vue";
+import type { HTMLAttributes, PropType, StyleValue } from "vue";
 
 type ClassValue = string | Record<string, boolean>;
 
@@ -9,14 +9,13 @@ export interface AxisScrollBarProps {
 	style?: StyleValue;
 	startOffset?: number;
 	endOffset?: number;
+	withTrack?: boolean;
+	trackProps?: HTMLAttributes;
+	thumbProps?: HTMLAttributes;
 }
 
 export function axisScrollBarProps() {
 	return {
-		class: {
-			type: [String, Object, Array] as PropType<ClassValue | ClassValue[]>,
-			required: false,
-		},
 		container: {
 			type: Object as PropType<HTMLElement>,
 			required: false,
@@ -34,10 +33,18 @@ export function axisScrollBarProps() {
 			type: Number as PropType<number>,
 			required: false,
 		},
-		style: {
-			type: [String, Object, Array] as PropType<StyleValue>,
+		withTrack: {
+			type: Boolean as PropType<boolean>,
 			required: false,
-			default: true,
+			default: false,
+		},
+		trackProps: {
+			type: Object as PropType<HTMLAttributes>,
+			required: false,
+		},
+		thumbProps: {
+			type: Object as PropType<HTMLAttributes>,
+			required: false,
 		},
 	};
 }

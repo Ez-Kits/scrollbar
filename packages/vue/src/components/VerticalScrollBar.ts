@@ -5,12 +5,14 @@ import { defineComponent, h, onBeforeUnmount, ref, watch } from "vue";
 export const VerticalScrollBar = defineComponent({
 	inheritAttrs: true,
 	props: axisScrollBarProps(),
-	setup(props) {
-		const scrollBarRef = ref<HTMLDivElement>();
+	setup(props, { attrs }) {
+		const trackRef = ref<HTMLDivElement>();
+		const thumbRef = ref<HTMLDivElement>();
 
 		const scrollBar = new VerticalScrollBarInstance({
 			...props,
-			scrollBar: scrollBarRef.value,
+			thumb: thumbRef.value,
+			track: trackRef.value,
 		});
 		scrollBar.mount();
 
@@ -20,12 +22,14 @@ export const VerticalScrollBar = defineComponent({
 				props.autoHide,
 				props.startOffset,
 				props.endOffset,
-				scrollBarRef.value,
+				trackRef.value,
+				thumbRef.value,
 			],
 			() => {
 				scrollBar.updateOptions({
 					...props,
-					scrollBar: scrollBarRef.value,
+					thumb: thumbRef.value,
+					track: trackRef.value,
 				});
 			}
 		);
@@ -35,10 +39,22 @@ export const VerticalScrollBar = defineComponent({
 		});
 
 		return () =>
-			h("div", {
-				ref: scrollBarRef,
-				class: props.class,
-				style: props.style,
-			});
+			props.withTrack
+				? h(
+						"div",
+						{
+							ref: trackRef,
+							...attrs,
+							...props.trackProps,
+						},
+						h("div", {
+							ref: thumbRef,
+							...props.thumbProps,
+						})
+				  )
+				: h("div", {
+						ref: thumbRef,
+						...attrs,
+				  });
 	},
 });
