@@ -1,66 +1,52 @@
 export interface ScrollBarStore {
 	/**
-	 * Size of scrollbar.
+	 * Size of scrollbar thumb.
 	 * Is height with Vertical Scrollbar and width with Horizontal ScrollBar
 	 */
-	size: number;
+	thumbSize: number;
 	/**
-	 * Offset of scrollbar.
+	 * Offset of scrollbar thumb.
 	 * Is offset top with Vertical Scrollbar and offset left with Horizontal ScrollBar
 	 */
-	offset: number;
+	thumbOffset: number;
 	/**
-	 * Size of container.
+	 * Size of scrollbar track.
 	 * Is height with Vertical Scrollbar and width with Horizontal ScrollBar
 	 */
-	containerSize: number;
+	trackSize: number;
 	/**
-	 * Visibility of scrollbar.
+	 * Is scrollbar track hovered.
 	 */
-	visible: boolean;
+	isHoveringTrack: boolean;
+	/**
+	 * Is scrollbar thumb hovered.
+	 */
+	isHoveringThumb: boolean;
+	/**
+	 * Is scrollbar thumb is being dragged.
+	 */
+	isDraggingThumb: boolean;
+	/**
+	 * Is container is being scrolled.
+	 */
+	isScrolling: boolean;
 }
 
 export interface ScrollBarOptions {
 	/**
 	 * Container element, which will be scrollable
 	 */
-	container: HTMLElement;
+	getContainerElement?: () => HTMLElement | null | undefined;
 
 	/**
 	 * Scrollbar Thumb element
 	 */
-	thumb?: HTMLElement;
+	getThumbElement?: () => HTMLElement | null | undefined;
 
 	/**
 	 * Scrollbar Track element
 	 */
-	track?: HTMLElement;
-
-	/**
-	 * Should scrollbar automatically hide
-	 */
-	autoHide?: boolean;
-
-	// /**
-	//  * Modify scrollbar store, useful when need to change size or offset of scrollbar
-	//  */
-	// modifier?: (store: ScrollBarStore, container: HTMLElement) => ScrollBarStore;
-
-	/**
-	 * Offset of scrollbar from start.
-	 * Top offset with Vertical Scrollbar.
-	 * Left offset with Horizontal Scrollbar.
-	 * @default 0
-	 */
-	startOffset: number;
-
-	/**
-	 * Offset of scrollbar from end.
-	 * Bottom offset with Vertical Scrollbar.
-	 * Right offset with Horizontal Scrollbar.
-	 * @default 0
-	 */
-	endOffset: number;
+	getTrackElement?: () => HTMLElement | null | undefined;
 }
 
 export interface Coordinate {

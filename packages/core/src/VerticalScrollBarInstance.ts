@@ -1,4 +1,4 @@
-import { BaseScrollBarInstance } from "src/BaseScrollBarInstance";
+import { BaseScrollBarInstance } from "src/BaseScrollBarInstance.old";
 import { Coordinate, ScrollBarStore } from "src/types";
 
 export class VerticalScrollBarInstance extends BaseScrollBarInstance {
