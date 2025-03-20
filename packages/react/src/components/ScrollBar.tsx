@@ -40,8 +40,18 @@ export const ScrollBar = ({
 	);
 
 	return (
-		<div {...props} ref={debounceUpdateContainer}>
-			{children}
+		<div {...props}>
+			<div
+				style={{
+					overflow: "auto",
+					height: "100%",
+					width: "100%",
+					scrollbarWidth: "none",
+				}}
+				ref={debounceUpdateContainer}
+			>
+				{children}
+			</div>
 			{horizontal ? (
 				<HorizontalScrollBar
 					container={container}

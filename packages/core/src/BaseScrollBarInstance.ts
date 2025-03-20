@@ -5,7 +5,7 @@ export abstract class BaseScrollBarInstance {
 	protected store: ScrollBarStore;
 
 	constructor(options: Partial<ScrollBarOptions>) {
-		this.updateOptions(options);
+		this.options = { ...options };
 		this.store = {
 			thumbSize: 0,
 			thumbOffset: 0,
@@ -19,21 +19,33 @@ export abstract class BaseScrollBarInstance {
 
 	// #region Initialization
 	updateOptions(options: Partial<ScrollBarOptions>) {
-		const isContainerElementChanged =
-			options.getContainerElement() !== this.options.getContainerElement;
-		const isTrackElementChanged =
-			options.getTrackElement() !== this.options.getTrackElement;
-		const isThumbElementChanged =
-			options.getThumbElement() !== this.options.getThumbElement;
+		const isContainerElementChanged = this.isElementGetterChanged(
+			this.options.getContainerElement,
+			options.getContainerElement
+		);
+		const isTrackElementChanged = this.isElementGetterChanged(
+			this.options.getTrackElement,
+			options.getTrackElement
+		);
+		const isThumbElementChanged = this.isElementGetterChanged(
+			this.options.getThumbElement,
+			options.getThumbElement
+		);
 
-		this.options = { ...options };
-		this.removeEventListeners();
-		this.addEventListeners();
+		if (
+			isContainerElementChanged ||
+			isTrackElementChanged ||
+			isThumbElementChanged
+		) {
+			this.options = { ...options };
+			this.removeEventListeners();
+			this.addEventListeners();
+		}
 	}
 
 	private isElementGetterChanged(
-		oldElementGetter: () => HTMLElement | undefined,
-		newElementGetter: () => HTMLElement | undefined
+		oldElementGetter?: () => HTMLElement | undefined | null,
+		newElementGetter?: () => HTMLElement | undefined | null
 	) {
 		if (oldElementGetter !== undefined && newElementGetter !== undefined) {
 			return oldElementGetter() !== newElementGetter();
@@ -50,6 +62,15 @@ export abstract class BaseScrollBarInstance {
 		return false;
 	}
 
+	private initialScrollBarElement() {
+		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
+		this.updateStore({
+			thumbSize,
+			thumbOffset,
+			trackSize: this.getTrackElement()?.clientWidth,
+		});
+	}
+
 	private addEventListeners() {
 		this.addContainerElementEventListeners();
 		this.addTrackElementEventListeners();
@@ -64,6 +85,7 @@ export abstract class BaseScrollBarInstance {
 
 	mount() {
 		this.addEventListeners();
+		this.initialScrollBarElement();
 
 		return () => {
 			this.unmount();
@@ -105,10 +127,13 @@ export abstract class BaseScrollBarInstance {
 
 		this.containerEventAbortController = new AbortController();
 
+		console.log("addContainerElementEventListeners");
+
 		container.addEventListener("mousemove", this.handleContainerMouseMove, {
 			signal: this.containerEventAbortController.signal,
 		});
 		container.addEventListener("scroll", this.handleContainerScroll, {
+			capture: true,
 			signal: this.containerEventAbortController.signal,
 		});
 		container.addEventListener("scrollend", this.handleContainerScrollEnd, {
@@ -121,16 +146,16 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private handleContainerMouseMove = (event: MouseEvent) => {
-		if (!this.trackDomRect) return;
-
 		this.updateStore({
-			isHoveringTrack: this.isHoveringTrack(this.trackDomRect, event),
+			isHoveringTrack: this.isHoveringTrack(event),
 		});
 	};
 
-	private handleContainerScroll = (event: Event) => {
+	private handleContainerScroll = () => {
 		this.updateStore({ isScrolling: true });
-		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset(event);
+		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
+		console.log("thumbSize", thumbSize);
+		console.log("thumbOffset", thumbOffset);
 		this.updateStore({ thumbSize, thumbOffset });
 	};
 
@@ -141,7 +166,6 @@ export abstract class BaseScrollBarInstance {
 
 	// #region Scrollbar Track
 	private trackEventAbortController = new AbortController();
-	private trackDomRect?: DOMRect;
 	private trackObserver?: ResizeObserver;
 
 	protected getTrackElement() {
@@ -165,6 +189,10 @@ export abstract class BaseScrollBarInstance {
 			track.dataset.size = `${trackSize}px`;
 			track.dataset.thumbOffset = `${thumbOffset}px`;
 			track.dataset.thumbSize = `${thumbSize}px`;
+
+			track.style.setProperty("--thumb-offset", `${thumbOffset}px`);
+			track.style.setProperty("--thumb-size", `${thumbSize}px`);
+			track.style.setProperty("--track-size", `${trackSize}px`);
 
 			if (isHoveringTrack) {
 				track.dataset.isHoveringTrack = "true";
@@ -196,11 +224,14 @@ export abstract class BaseScrollBarInstance {
 		const track = this.getTrackElement();
 		if (!track) return;
 
-		this.trackObserver = new ResizeObserver(this.updateTrackDomRect.bind(this));
+		this.trackObserver = new ResizeObserver(this.handleTrackResize);
 		this.trackObserver.observe(track);
 
 		this.trackEventAbortController = new AbortController();
 		track.addEventListener("mousedown", this.handleTrackMouseDown, {
+			signal: this.trackEventAbortController.signal,
+		});
+		track.addEventListener("wheel", this.handleTrackWheel, {
 			signal: this.trackEventAbortController.signal,
 		});
 	}
@@ -210,12 +241,14 @@ export abstract class BaseScrollBarInstance {
 		this.trackObserver?.disconnect();
 	}
 
-	private updateTrackDomRect() {
-		const track = this.getTrackElement();
-		if (!track) return;
-
-		this.trackDomRect = track.getBoundingClientRect();
-	}
+	private handleTrackResize = () => {
+		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
+		this.updateStore({
+			trackSize: this.getTrackElement()?.clientWidth,
+			thumbSize,
+			thumbOffset,
+		});
+	};
 
 	private handleTrackMouseDown = (event: MouseEvent) => {
 		if (event.target === this.getThumbElement()) {
@@ -223,6 +256,17 @@ export abstract class BaseScrollBarInstance {
 		}
 
 		this.updateContainerScrollOffsetOnTrackPress(event);
+	};
+
+	private handleTrackWheel = (event: WheelEvent) => {
+		const container = this.getContainerElement();
+		if (!container) {
+			return;
+		}
+
+		event.preventDefault();
+		container.scrollLeft += event.deltaX;
+		container.scrollTop += event.deltaY;
 	};
 	// #endregion
 
@@ -280,11 +324,8 @@ export abstract class BaseScrollBarInstance {
 	// #endregion
 
 	// #region Helpers
-	protected abstract isHoveringTrack(
-		trackDomRect: DOMRect,
-		event: MouseEvent
-	): boolean;
-	protected abstract calculateThumbSizeAndOffset(event: Event): {
+	protected abstract isHoveringTrack(event: MouseEvent): boolean;
+	protected abstract calculateThumbSizeAndOffset(): {
 		thumbSize: number;
 		thumbOffset: number;
 	};

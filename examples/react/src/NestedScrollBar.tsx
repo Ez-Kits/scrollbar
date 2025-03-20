@@ -6,26 +6,31 @@ export function NestedScrollBar() {
 			style={{
 				height: 600,
 				width: 600,
+				paddingRight: 10,
 				overflowY: "auto",
 				position: "relative",
 				scrollbarWidth: "none",
 				whiteSpace: "nowrap",
 			}}
 			vertical={{
-				style: {
-					backgroundColor: "black",
-					width: 5,
+				thumbProps: {
+					className: "bg-gray-500 absolute top-0 w-1.25 min-h-4",
+					style: {
+						transform: "translateY(var(--thumb-offset))",
+						height: "var(--thumb-size)",
+					},
 				},
-				startOffset: 50,
-				endOffset: 50,
+				trackProps: {
+					className: "bg-black absolute right-0 top-0 bottom-0 w-2",
+				},
 			}}
 			horizontal={{
-				style: {
-					backgroundColor: "black",
-					height: 5,
+				thumbProps: {
+					className: "bg-black absolute left-0 right-0 bottom-0 h-1",
 				},
-				startOffset: 50,
-				endOffset: 50,
+				trackProps: {
+					className: "bg-black absolute left-0 right-0 bottom-0 h-1",
+				},
 			}}
 		>
 			<p
