@@ -1,11 +1,23 @@
-import { ScrollBarOptions, ScrollBarStore } from "./types";
+import { isServer } from "src/utils";
+import {
+	Coordinate,
+	ScrollBarOptions,
+	ScrollBarStore,
+	ThumbDraggingActivatorInfo,
+} from "./types";
 
 export abstract class BaseScrollBarInstance {
 	protected options!: ScrollBarOptions;
 	protected store: ScrollBarStore;
 
+	private observer?: ResizeObserver;
+
 	constructor(options: Partial<ScrollBarOptions>) {
-		this.options = { ...options };
+		this.options = {
+			...options,
+			shouldAttachScrollBarStateToContainer:
+				options.shouldAttachScrollBarStateToContainer ?? true,
+		};
 		this.store = {
 			thumbSize: 0,
 			thumbOffset: 0,
@@ -14,6 +26,7 @@ export abstract class BaseScrollBarInstance {
 			isHoveringThumb: false,
 			isDraggingThumb: false,
 			isScrolling: false,
+			isScrollable: false,
 		};
 	}
 
@@ -32,12 +45,17 @@ export abstract class BaseScrollBarInstance {
 			options.getThumbElement
 		);
 
+		this.options = {
+			...options,
+			shouldAttachScrollBarStateToContainer:
+				options.shouldAttachScrollBarStateToContainer ?? true,
+		};
+
 		if (
 			isContainerElementChanged ||
 			isTrackElementChanged ||
 			isThumbElementChanged
 		) {
-			this.options = { ...options };
 			this.removeEventListeners();
 			this.addEventListeners();
 		}
@@ -63,15 +81,40 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private initialScrollBarElement() {
+		if (isServer()) return;
+
 		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
 		this.updateStore({
 			thumbSize,
 			thumbOffset,
 			trackSize: this.getTrackElement()?.clientWidth,
+			isScrollable: this.isScrollable(),
 		});
 	}
 
+	private getObserver() {
+		if (isServer()) return;
+
+		if (!this.observer) {
+			this.observer = new ResizeObserver(this.handleResize);
+		}
+
+		return this.observer;
+	}
+
+	private handleResize = () => {
+		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
+		this.updateStore({
+			trackSize: this.getTrackElement()?.clientWidth,
+			thumbSize,
+			thumbOffset,
+			isScrollable: this.isScrollable(),
+		});
+	};
+
 	private addEventListeners() {
+		if (isServer()) return;
+
 		this.addContainerElementEventListeners();
 		this.addTrackElementEventListeners();
 		this.addThumbElementEventListeners();
@@ -112,28 +155,46 @@ export abstract class BaseScrollBarInstance {
 
 	// #region Container
 	private containerEventAbortController = new AbortController();
+	private lastContainerScrollOffset: Coordinate = { x: 0, y: 0 };
 
 	protected getContainerElement() {
 		return this.options.getContainerElement?.();
 	}
 
 	private updateContainerElement() {
-		// Do nothing
+		if (!this.options.shouldAttachScrollBarStateToContainer) return;
+		const container = this.getContainerElement();
+		if (!container) return;
+
+		this.attachScrollBarStateToElement(container);
 	}
 
 	private addContainerElementEventListeners() {
 		const container = this.getContainerElement();
-		if (!container) return;
+		const track = this.getTrackElement();
+		if (!container || !track) return;
+
+		const observer = this.getObserver();
+		observer?.observe(container);
 
 		this.containerEventAbortController = new AbortController();
 
-		console.log("addContainerElementEventListeners");
+		if (container.contains(track)) {
+			container.addEventListener("mousemove", this.handleContainerMouseMove, {
+				signal: this.containerEventAbortController.signal,
+			});
+		} else {
+			document.body.addEventListener(
+				"mousemove",
+				this.handleContainerMouseMove,
+				{
+					capture: true,
+					signal: this.containerEventAbortController.signal,
+				}
+			);
+		}
 
-		container.addEventListener("mousemove", this.handleContainerMouseMove, {
-			signal: this.containerEventAbortController.signal,
-		});
 		container.addEventListener("scroll", this.handleContainerScroll, {
-			capture: true,
 			signal: this.containerEventAbortController.signal,
 		});
 		container.addEventListener("scrollend", this.handleContainerScrollEnd, {
@@ -143,89 +204,64 @@ export abstract class BaseScrollBarInstance {
 
 	private removeContainerElementEventListeners() {
 		this.containerEventAbortController.abort();
+		this.getObserver()?.disconnect();
 	}
 
 	private handleContainerMouseMove = (event: MouseEvent) => {
 		this.updateStore({
 			isHoveringTrack: this.isHoveringTrack(event),
+			isHoveringThumb: this.isHoveringThumb(event),
 		});
 	};
 
 	private handleContainerScroll = () => {
-		this.updateStore({ isScrolling: true });
 		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
-		console.log("thumbSize", thumbSize);
-		console.log("thumbOffset", thumbOffset);
-		this.updateStore({ thumbSize, thumbOffset });
+		this.updateStore({
+			thumbSize,
+			thumbOffset,
+			isScrolling: this.isScrolling(this.lastContainerScrollOffset),
+		});
+
+		const container = this.getContainerElement();
+		if (!container) return;
+		this.lastContainerScrollOffset = {
+			x: container.scrollLeft,
+			y: container.scrollTop,
+		};
 	};
 
 	private handleContainerScrollEnd = () => {
 		this.updateStore({ isScrolling: false });
+		const container = this.getContainerElement();
+		if (!container) return;
+
+		this.lastContainerScrollOffset = {
+			x: container.scrollLeft,
+			y: container.scrollTop,
+		};
 	};
 	// #endregion
 
 	// #region Scrollbar Track
 	private trackEventAbortController = new AbortController();
-	private trackObserver?: ResizeObserver;
 
 	protected getTrackElement() {
 		return this.options.getTrackElement?.();
 	}
 
 	private updateTrackElement() {
-		const {
-			thumbSize,
-			thumbOffset,
-			trackSize,
-			isHoveringTrack,
-			isHoveringThumb,
-			isDraggingThumb,
-			isScrolling,
-		} = this.store;
 		const track = this.getTrackElement();
 		if (!track) return;
 
-		requestAnimationFrame(() => {
-			track.dataset.size = `${trackSize}px`;
-			track.dataset.thumbOffset = `${thumbOffset}px`;
-			track.dataset.thumbSize = `${thumbSize}px`;
-
-			track.style.setProperty("--thumb-offset", `${thumbOffset}px`);
-			track.style.setProperty("--thumb-size", `${thumbSize}px`);
-			track.style.setProperty("--track-size", `${trackSize}px`);
-
-			if (isHoveringTrack) {
-				track.dataset.isHoveringTrack = "true";
-			} else {
-				delete track.dataset.isHoveringTrack;
-			}
-
-			if (isHoveringThumb) {
-				track.dataset.isHoveringThumb = "true";
-			} else {
-				delete track.dataset.isHoveringThumb;
-			}
-
-			if (isDraggingThumb) {
-				track.dataset.isDraggingThumb = "true";
-			} else {
-				delete track.dataset.isDraggingThumb;
-			}
-
-			if (isScrolling) {
-				track.dataset.isScrolling = "true";
-			} else {
-				delete track.dataset.isScrolling;
-			}
-		});
+		this.attachScrollBarStateToElement(track);
 	}
 
 	private addTrackElementEventListeners() {
 		const track = this.getTrackElement();
 		if (!track) return;
 
-		this.trackObserver = new ResizeObserver(this.handleTrackResize);
-		this.trackObserver.observe(track);
+		const observer = this.getObserver();
+		observer?.observe(track);
 
 		this.trackEventAbortController = new AbortController();
 		track.addEventListener("mousedown", this.handleTrackMouseDown, {
@@ -238,17 +274,8 @@ export abstract class BaseScrollBarInstance {
 
 	private removeTrackElementEventListeners() {
 		this.trackEventAbortController.abort();
-		this.trackObserver?.disconnect();
+		this.getObserver()?.disconnect();
 	}
-
-	private handleTrackResize = () => {
-		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
-		this.updateStore({
-			trackSize: this.getTrackElement()?.clientWidth,
-			thumbSize,
-			thumbOffset,
-		});
-	};
 
 	private handleTrackMouseDown = (event: MouseEvent) => {
 		if (event.target === this.getThumbElement()) {
@@ -272,7 +299,7 @@ export abstract class BaseScrollBarInstance {
 
 	// #region Scrollbar Thumb
 	private thumbEventAbortController = new AbortController();
-	private thumbDraggingActivatorEvent?: MouseEvent;
+	private thumbDraggingActivator?: ThumbDraggingActivatorInfo;
 
 	protected getThumbElement() {
 		return this.options.getThumbElement?.();
@@ -289,12 +316,14 @@ export abstract class BaseScrollBarInstance {
 		this.thumbEventAbortController = new AbortController();
 
 		thumb.addEventListener("mousedown", this.handleThumbMouseDown, {
+			capture: true,
 			signal: this.thumbEventAbortController.signal,
 		});
 		document.body.addEventListener("mousemove", this.handleThumbMouseMove, {
 			signal: this.thumbEventAbortController.signal,
 		});
 		window.addEventListener("mouseup", this.handleThumbMouseUp, {
+			capture: true,
 			signal: this.thumbEventAbortController.signal,
 		});
 	}
@@ -304,27 +333,124 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private handleThumbMouseDown = (event: MouseEvent) => {
-		this.thumbDraggingActivatorEvent = event;
+		event.stopImmediatePropagation();
+		this.thumbDraggingActivator = {
+			activatorEvent: event,
+			offset: this.store.thumbOffset,
+			bodyUserSelect: document.body.style.userSelect,
+		};
+		document.body.style.userSelect = "none";
 		this.updateStore({ isDraggingThumb: true });
 	};
 
 	private handleThumbMouseMove = (event: MouseEvent) => {
-		if (!this.thumbDraggingActivatorEvent) return;
+		if (!this.thumbDraggingActivator) return;
 
 		this.updateContainerScrollOffsetOnThumbDragging(
-			this.thumbDraggingActivatorEvent,
+			this.thumbDraggingActivator,
 			event
 		);
 	};
 
 	private handleThumbMouseUp = () => {
-		this.thumbDraggingActivatorEvent = undefined;
+		document.body.style.userSelect =
+			this.thumbDraggingActivator?.bodyUserSelect ?? "";
+		this.thumbDraggingActivator = undefined;
 		this.updateStore({ isDraggingThumb: false });
 	};
 	// #endregion
 
 	// #region Helpers
-	protected abstract isHoveringTrack(event: MouseEvent): boolean;
+	private isHoveringElement(event: MouseEvent, element: HTMLElement): boolean {
+		if (element.contains(event.target as Node) || element === event.target) {
+			return true;
+		}
+
+		const elementRect = element.getBoundingClientRect();
+		const mouseX = event.clientX;
+		const mouseY = event.clientY;
+
+		return (
+			mouseX >= elementRect.left &&
+			mouseX <= elementRect.right &&
+			mouseY >= elementRect.top &&
+			mouseY <= elementRect.bottom
+		);
+	}
+
+	protected isHoveringTrack(event: MouseEvent): boolean {
+		const track = this.getTrackElement();
+		if (!track) {
+			return false;
+		}
+
+		return this.isHoveringElement(event, track);
+	}
+
+	protected isHoveringThumb(event: MouseEvent): boolean {
+		const thumb = this.getThumbElement();
+		if (!thumb) {
+			return false;
+		}
+
+		return this.isHoveringElement(event, thumb);
+	}
+
+	private attachScrollBarStateToElement(element: HTMLElement) {
+		const {
+			thumbSize,
+			thumbOffset,
+			trackSize,
+			isHoveringTrack,
+			isHoveringThumb,
+			isDraggingThumb,
+			isScrolling,
+			isScrollable,
+		} = this.store;
+
+		requestAnimationFrame(() => {
+			element.dataset.size = `${trackSize}px`;
+			element.dataset.thumbOffset = `${thumbOffset}px`;
+			element.dataset.thumbSize = `${thumbSize}px`;
+
+			element.style.setProperty("--thumb-offset", `${thumbOffset}px`);
+			element.style.setProperty("--thumb-size", `${thumbSize}px`);
+			element.style.setProperty("--track-size", `${trackSize}px`);
+
+			if (isHoveringTrack) {
+				element.dataset.isHoveringTrack = "true";
+			} else {
+				delete element.dataset.isHoveringTrack;
+			}
+
+			if (isHoveringThumb) {
+				element.dataset.isHoveringThumb = "true";
+			} else {
+				delete element.dataset.isHoveringThumb;
+			}
+
+			if (isDraggingThumb) {
+				element.dataset.isDraggingThumb = "true";
+			} else {
+				delete element.dataset.isDraggingThumb;
+			}
+
+			if (isScrolling) {
+				element.dataset.isScrolling = "true";
+			} else {
+				delete element.dataset.isScrolling;
+			}
+
+			if (isScrollable) {
+				element.dataset.isScrollable = "true";
+			} else {
+				delete element.dataset.isScrollable;
+			}
+		});
+	}
+	// #endregion
+
+	// #region Calculations
 	protected abstract calculateThumbSizeAndOffset(): {
 		thumbSize: number;
 		thumbOffset: number;
@@ -333,8 +459,10 @@ export abstract class BaseScrollBarInstance {
 		event: MouseEvent
 	): void;
 	protected abstract updateContainerScrollOffsetOnThumbDragging(
-		activatorEvent: MouseEvent,
+		activatorInfo: ThumbDraggingActivatorInfo,
 		event: MouseEvent
 	): void;
+	protected abstract isScrolling(lastScrollOffset: Coordinate): boolean;
+	protected abstract isScrollable(): boolean;
 	// #endregion
 }

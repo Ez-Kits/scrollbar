@@ -1,5 +1,5 @@
 import { useRef, type HTMLAttributes, type RefObject } from "react";
-import { useHorizontalScrollBar } from "src/hooks/useHorizontalScrollBar";
+import { useHorizontalScrollBar } from "src/hooks";
 import { maybeRefToValue } from "src/utilities";
 
 export type HorizontalScrollBarProps = {

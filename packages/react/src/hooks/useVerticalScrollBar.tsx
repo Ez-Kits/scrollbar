@@ -4,7 +4,7 @@ import {
 } from "@ez-kits/scrollbar-core";
 import { useEffect, useState } from "react";
 
-export function useVerticalScrollBar(options: ScrollBarOptions) {
+export function useVerticalScrollBar(options: Partial<ScrollBarOptions>) {
 	const [verticalScrollBarInstance] = useState<VerticalScrollBarInstance>(
 		() => {
 			return new VerticalScrollBarInstance(options);

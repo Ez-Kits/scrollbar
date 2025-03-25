@@ -23,13 +23,17 @@ export interface ScrollBarStore {
 	 */
 	isHoveringThumb: boolean;
 	/**
-	 * Is scrollbar thumb is being dragged.
+	 * Is scrollbar thumb being dragged.
 	 */
 	isDraggingThumb: boolean;
 	/**
-	 * Is container is being scrolled.
+	 * Is container being scrolled.
 	 */
 	isScrolling: boolean;
+	/**
+	 * Is container scrollable.
+	 */
+	isScrollable: boolean;
 }
 
 export interface ScrollBarOptions {
@@ -47,6 +51,12 @@ export interface ScrollBarOptions {
 	 * Scrollbar Track element
 	 */
 	getTrackElement?: () => HTMLElement | null | undefined;
+
+	/**
+	 * Add scrollbar state to container element
+	 * @default true
+	 */
+	shouldAttachScrollBarStateToContainer: boolean;
 }
 
 export interface Coordinate {
@@ -54,8 +64,8 @@ export interface Coordinate {
 	y: number;
 }
 
-export interface DraggingInfo {
-	mouseCoordinate: Coordinate;
-	scrollOffset: Coordinate;
+export interface ThumbDraggingActivatorInfo {
+	activatorEvent: MouseEvent;
 	offset: number;
+	bodyUserSelect: string;
 }

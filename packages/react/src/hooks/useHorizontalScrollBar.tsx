@@ -4,7 +4,7 @@ import {
 } from "@ez-kits/scrollbar-core";
 import { useEffect, useState } from "react";
 
-export function useHorizontalScrollBar(options: ScrollBarOptions) {
+export function useHorizontalScrollBar(options: Partial<ScrollBarOptions>) {
 	const [horizontalScrollBarInstance] = useState<HorizontalScrollBarInstance>(
 		() => {
 			return new HorizontalScrollBarInstance(options);

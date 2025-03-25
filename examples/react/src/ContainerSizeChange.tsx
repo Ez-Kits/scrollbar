@@ -23,50 +23,39 @@ export function ContainerSizeChange() {
 				scrollbarWidth: "none",
 				whiteSpace: "nowrap",
 				marginLeft: 500,
-				border: "4px solid black",
+				position: "relative",
 			}}
-			// vertical={{
-			// 	style: {
-			// 		backgroundColor: "gray",
-			// 		width: 5,
-			// 	},
-			// 	startOffset: 50,
-			// 	endOffset: 50,
-			// }}
-			// horizontal={{
-			// 	startOffset: 50,
-			// 	endOffset: 50,
-			// 	style: {
-			// 		height: 5,
-			// 		backgroundColor: "gray",
-			// 	},
-			// }}
+			scrollerProps={{
+				style: {
+					overflow: "auto",
+					scrollbarWidth: "none",
+					height: "100%",
+					width: "100%",
+				},
+			}}
 			vertical={{
 				trackProps: {
-					className:
-						"!w-1.5 bg-blue-500 !absolute !top-[50px] !right-0 !left-auto",
-					// style: {
-					// 	width: 5,
-					// 	backgroundColor: "blue",
-					// },
+					className: "w-1.5 bg-black absolute top-0 !right-0 left-auto h-full",
 				},
 				thumbProps: {
+					className: "bg-gray-500 absolute top-0 !right-0 left-auto w-full",
 					style: {
-						backgroundColor: "gray",
-						width: 5,
+						transform: "translateY(var(--thumb-offset))",
+						height: "var(--thumb-size)",
 					},
 				},
 			}}
 			horizontal={{
 				trackProps: {
-					style: {
-						height: 5,
-					},
+					className:
+						"bg-black absolute bottom-0 !left-0 !right-auto w-full h-2",
 				},
 				thumbProps: {
+					className:
+						"bg-gray-500 absolute bottom-0 !left-0 !right-auto w-full h-2",
 					style: {
-						backgroundColor: "gray",
-						height: 5,
+						transform: "translateX(var(--thumb-offset))",
+						width: "var(--thumb-size)",
 					},
 				},
 			}}

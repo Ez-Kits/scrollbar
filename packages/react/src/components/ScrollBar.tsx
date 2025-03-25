@@ -1,5 +1,4 @@
-import { useMemo, useState, type HTMLAttributes } from "react";
-import { debounce } from "src/utilities";
+import { useRef, type HTMLAttributes } from "react";
 import {
 	HorizontalScrollBar,
 	type HorizontalScrollBarProps,
@@ -16,51 +15,41 @@ export interface ScrollBarProps extends HTMLAttributes<HTMLDivElement> {
 	 */
 	horizontal?: boolean | HorizontalScrollBarProps;
 
-	/**
+	/**1
 	 * Vertical scrollbar props
 	 * @default true
 	 */
 	vertical?: boolean | VerticalScrollBarProps;
+
+	/**
+	 * Props for the scroller element
+	 */
+	scrollerProps?: HTMLAttributes<HTMLDivElement>;
 }
 
 export const ScrollBar = ({
 	children,
 	vertical = true,
 	horizontal = true,
+	scrollerProps,
 	...props
 }: ScrollBarProps) => {
-	const [container, setContainer] = useState<HTMLDivElement>();
-
-	const debounceUpdateContainer = useMemo(
-		() =>
-			debounce((el: HTMLDivElement | null): void => {
-				setContainer(el || undefined);
-			}, 100),
-		[]
-	);
+	const containerRef = useRef<HTMLDivElement>(null);
 
 	return (
 		<div {...props}>
-			<div
-				style={{
-					overflow: "auto",
-					height: "100%",
-					width: "100%",
-					scrollbarWidth: "none",
-				}}
-				ref={debounceUpdateContainer}
-			>
+			<div {...scrollerProps} ref={containerRef}>
 				{children}
 			</div>
 			{horizontal ? (
 				<HorizontalScrollBar
-					container={container}
+					container={containerRef}
 					{...(typeof horizontal === "object" ? horizontal : {})}
 				/>
 			) : null}
 			{vertical ? (
 				<VerticalScrollBar
-					container={container}
+					container={containerRef}
 					{...(typeof vertical === "object" ? vertical : {})}
 				/>
 			) : null}
