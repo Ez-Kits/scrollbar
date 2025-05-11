@@ -57,6 +57,13 @@ export interface ScrollBarOptions {
 	 * @default true
 	 */
 	shouldAttachScrollBarStateToContainer: boolean;
+
+	/**
+	 * Get elements to attach scrollbar state to
+	 */
+	getElementsToAttachScrollBarStateTo?: () => Iterable<
+		HTMLElement | null | undefined
+	>;
 }
 
 export interface Coordinate {

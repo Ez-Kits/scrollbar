@@ -1,13 +1,15 @@
-import type { JSX } from "solid-js";
+import type { Accessor } from "solid-js";
 
-export type WithTrackProps = {
-	withTrack: true;
-	thumbProps?: JSX.HTMLAttributes<HTMLDivElement>;
-	trackProps?: JSX.HTMLAttributes<HTMLDivElement>;
+export type MaybeAccessor<T> = T | Accessor<T>;
+
+type ExcludeFunction<T> = T extends (...args: any[]) => any ? never : T;
+
+export type ToMaybeAccessorObject<T> = {
+	[K in keyof T as undefined extends T[K]
+		? K
+		: never]?: T[K] extends ExcludeFunction<T[K]> ? MaybeAccessor<T[K]> : T[K];
+} & {
+	[K in keyof T as undefined extends T[K]
+		? never
+		: K]: T[K] extends ExcludeFunction<T[K]> ? MaybeAccessor<T[K]> : T[K];
 };
-
-export type WithoutTrackProps = {
-	withTrack?: false;
-	thumbProps?: undefined;
-	trackProps?: undefined;
-} & JSX.HTMLAttributes<HTMLDivElement>;

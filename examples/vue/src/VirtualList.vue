@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useVirtualizer } from "@tanstack/vue-virtual";
-import { ref, computed, watchEffect } from "vue";
 import { VerticalScrollBar } from "@ez-kits/scrollbar-vue";
+import { useVirtualizer } from "@tanstack/vue-virtual";
+import { computed, ref } from "vue";
 
-const parentRef = ref(null);
+const parentRef = ref<HTMLElement | null>(null);
 
 const rowVirtualizer = useVirtualizer({
 	count: 100,
@@ -17,44 +17,53 @@ const totalSize = computed(() => rowVirtualizer.value.getTotalSize());
 </script>
 
 <template>
-	<VerticalScrollBar
-		:container="parentRef"
-		:style="{
-			width: '10px',
-			backgroundColor: 'black',
-			zIndex: 1000,
-		}"
-	/>
-	<div
-		ref="parentRef"
-		class="List"
-		:style="{
-			height: '200px',
-			width: '400px',
-			overflow: 'auto',
-			'scrollbar-width': 'none',
-		}"
-	>
+	<div className="relative w-100">
+		<VerticalScrollBar
+			:container="parentRef"
+			:thumbProps="{
+				class: 'bg-gray-500 absolute top-0 w-2 min-h-4',
+				style: {
+					transform: 'translateY(var(--thumb-offset))',
+					height: 'var(--thumb-size)',
+				},
+			}"
+			:trackProps="{
+				class: 'bg-black absolute right-0 top-0 bottom-0 w-2 z-10',
+			}"
+		/>
 		<div
+			ref="parentRef"
+			class="List"
 			:style="{
-				height: `${totalSize}px`,
-				width: '100%',
+				height: `200px`,
+				width: `400px`,
+				overflow: 'auto',
+				scrollbarWidth: 'none',
 				position: 'relative',
 			}"
 		>
 			<div
-				v-for="virtualRow in virtualItems"
-				:key="virtualRow.index"
 				:style="{
-					position: 'absolute',
-					top: 0,
-					left: 0,
+					height: `${totalSize}px`,
 					width: '100%',
-					height: `${virtualRow.size}px`,
-					transform: `translateY(${virtualRow.start}px)`,
+					position: 'relative',
 				}"
 			>
-				Row {{ virtualRow.index }}
+				<div
+					v-for="virtualRow in virtualItems"
+					:key="virtualRow.index"
+					:class="virtualRow.index % 2 ? 'ListItemOdd' : 'ListItemEven'"
+					:style="{
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						width: '100%',
+						height: `${virtualRow.size}px`,
+						transform: `translateY(${virtualRow.start}px)`,
+					}"
+				>
+					Row {{ virtualRow.index }}
+				</div>
 			</div>
 		</div>
 	</div>

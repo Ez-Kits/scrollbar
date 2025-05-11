@@ -27,5 +27,11 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["src", "./tsup.config.ts", "vitest.config.ts", "__tests__"]
+	"include": [
+		"src",
+		"./tsup.config.ts",
+		"vitest.config.ts",
+		"__tests__",
+		"types.ts"
+	]
 }

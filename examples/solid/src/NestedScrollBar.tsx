@@ -1,4 +1,5 @@
 import { ScrollBar } from "@ez-kits/scrollbar-solid";
+import { For } from "solid-js";
 
 export function NestedScrollBar() {
 	return (
@@ -6,26 +7,43 @@ export function NestedScrollBar() {
 			style={{
 				height: "600px",
 				width: "600px",
+				"padding-right": "10px",
 				"overflow-y": "auto",
 				position: "relative",
 				"scrollbar-width": "none",
 				"white-space": "nowrap",
 			}}
-			vertical={{
+			scrollerProps={{
 				style: {
-					"background-color": "black",
-					width: "5px",
+					overflow: "auto",
+					"scrollbar-width": "none",
+					height: "100%",
+					width: "100%",
 				},
-				startOffset: 50,
-				endOffset: 50,
+			}}
+			vertical={{
+				thumbProps: {
+					class: "bg-gray-500 absolute top-0 w-2 min-h-4",
+					style: {
+						transform: "translateY(var(--thumb-offset))",
+						height: "var(--thumb-size)",
+					},
+				},
+				trackProps: {
+					class: "bg-black absolute right-0 top-0 bottom-0 w-2",
+				},
 			}}
 			horizontal={{
-				style: {
-					"background-color": "black",
-					height: "5px",
+				thumbProps: {
+					class: "bg-gray-500 absolute left-0 right-0 bottom-0 h-2",
+					style: {
+						transform: "translateX(var(--thumb-offset))",
+						width: "var(--thumb-size)",
+					},
 				},
-				startOffset: 50,
-				endOffset: 50,
+				trackProps: {
+					class: "bg-black absolute left-0 right-0 bottom-0 h-2",
+				},
 			}}
 		>
 			<p
@@ -45,56 +63,74 @@ export function NestedScrollBar() {
 				dolore dignissimos provident consequatur explicabo dicta pariatur
 				assumenda ullam dolor vero repudiandae!
 			</p>
-			{Array(5)
-				.fill(null)
-				.map((_, index) => (
+			<For each={Array(5).fill(null)}>
+				{() => (
 					<p>
 						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
 						tempore doloribus numquam? Maiores nostrum quisquam officia modi
 						quis, dolore dignissimos provident consequatur explicabo dicta
 						pariatur assumenda ullam dolor vero repudiandae!
 					</p>
-				))}
+				)}
+			</For>
 
 			<ScrollBar
 				style={{
 					height: "300px",
 					width: "300px",
-					overflow: "auto",
 					"scrollbar-width": "none",
+					position: "relative",
+				}}
+				scrollerProps={{
+					style: {
+						overflow: "auto",
+						"scrollbar-width": "none",
+						height: "100%",
+						width: "100%",
+					},
 				}}
 				vertical={{
-					style: {
-						"background-color": "black",
-						width: "5px",
+					thumbProps: {
+						class:
+							"bg-gray-500 absolute top-0 w-2 min-h-25 group-data-[is-dragging-thumb]:bg-gray-700",
+						style: {
+							transform: "translateY(var(--thumb-offset))",
+							height: "var(--thumb-size)",
+						},
+					},
+					trackProps: {
+						class:
+							"group bg-black absolute right-0 top-0 bottom-0 w-2 overflow-hidden",
 					},
 				}}
 				horizontal={{
-					style: {
-						"background-color": "black",
-						height: "5px",
+					thumbProps: {
+						class:
+							"bg-gray-500 absolute left-0 right-0 bottom-0 h-2 group-data-[is-dragging-thumb]:bg-gray-700",
+						style: {
+							transform: "translateX(var(--thumb-offset))",
+							width: "var(--thumb-size)",
+						},
+					},
+					trackProps: {
+						class: "group bg-black absolute left-0 right-0 bottom-0 h-2",
 					},
 				}}
 			>
-				{Array(50)
-					.fill(null)
-					.map((_, index) => (
-						<p
-							style={{
-								"overflow-x": "hidden",
-							}}
-						>
+				<For each={Array(50).fill(null)}>
+					{() => (
+						<p>
 							Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
 							tempore doloribus numquam? Maiores nostrum quisquam officia modi
 							quis, dolore dignissimos provident consequatur explicabo dicta
 							pariatur assumenda ullam dolor vero repudiandae!
 						</p>
-					))}
+					)}
+				</For>
 			</ScrollBar>
 
-			{Array(5)
-				.fill(null)
-				.map((_, index) => (
+			<For each={Array(5).fill(null)}>
+				{() => (
 					<p
 						style={{
 							"overflow-x": "hidden",
@@ -105,7 +141,8 @@ export function NestedScrollBar() {
 						quis, dolore dignissimos provident consequatur explicabo dicta
 						pariatur assumenda ullam dolor vero repudiandae!
 					</p>
-				))}
+				)}
+			</For>
 			<p
 				style={{
 					position: "sticky",

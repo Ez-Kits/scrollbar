@@ -1,6 +1,6 @@
-import { HorizontalScrollBarInstance } from "@ez-kits/scrollbar-core";
 import { axisScrollBarProps } from "src/components/utils";
-import { defineComponent, h, onBeforeUnmount, ref, watch } from "vue";
+import { useHorizontalScrollBar } from "src/composables";
+import { computed, defineComponent, h, ref, watch } from "vue";
 
 export const HorizontalScrollBar = defineComponent({
 	inheritAttrs: true,
@@ -9,55 +9,39 @@ export const HorizontalScrollBar = defineComponent({
 		const trackRef = ref<HTMLDivElement>();
 		const thumbRef = ref<HTMLDivElement>();
 
-		const scrollBar = new HorizontalScrollBarInstance({
-			...props,
-			thumb: thumbRef.value,
-			track: trackRef.value,
+		const shouldAttachScrollBarStateToContainer = computed(() => {
+			return props.shouldAttachScrollBarStateToContainer ?? true;
 		});
-		scrollBar.mount();
+
+		const horizontalScrollBarInstance = useHorizontalScrollBar({
+			getContainerElement: () => props.container,
+			getTrackElement: () => trackRef.value,
+			getThumbElement: () => thumbRef.value,
+			shouldAttachScrollBarStateToContainer,
+		});
 
 		watch(
-			() => [
-				props.container,
-				props.autoHide,
-				props.startOffset,
-				props.endOffset,
-				trackRef.value,
-				thumbRef.value,
-			],
-			() => {
-				scrollBar.updateOptions({
-					...props,
-					thumb: thumbRef.value,
-					track: trackRef.value,
+			() => props.container,
+			(value) => {
+				horizontalScrollBarInstance.updateOptions({
+					getContainerElement: () => value,
 				});
 			}
 		);
 
-		onBeforeUnmount(() => {
-			scrollBar.unmount();
-		});
-
-		console.log(props);
-
 		return () =>
-			props.withTrack
-				? h(
-						"div",
-						{
-							ref: trackRef,
-							...attrs,
-							...props.trackProps,
-						},
-						h("div", {
-							ref: thumbRef,
-							...attrs,
-							...props.thumbProps,
-						})
-				  )
-				: h("div", {
-						ref: thumbRef,
-						...attrs,
-				  });
+			h(
+				"div",
+				{
+					ref: trackRef,
+					...attrs,
+					...props.trackProps,
+				},
+				h("div", {
+					ref: thumbRef,
+					...attrs,
+					...props.thumbProps,
+				})
+			);
 	},
 });

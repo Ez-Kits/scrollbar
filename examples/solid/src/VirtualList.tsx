@@ -14,13 +14,18 @@ export function VirtualList() {
 	});
 
 	return (
-		<>
+		<div class="relative w-100">
 			<VerticalScrollBar
 				container={container()}
-				style={{
-					width: "10px",
-					"background-color": "black",
-					"z-index": 1000,
+				thumbProps={{
+					class: "bg-gray-500 absolute top-0 w-2 min-h-4",
+					style: {
+						transform: "translateY(var(--thumb-offset))",
+						height: "var(--thumb-size)",
+					},
+				}}
+				trackProps={{
+					class: "bg-black absolute right-0 top-0 bottom-0 w-2 z-10",
 				}}
 			/>
 			<div
@@ -34,6 +39,7 @@ export function VirtualList() {
 					width: `400px`,
 					overflow: "auto",
 					"scrollbar-width": "none",
+					position: "relative",
 				}}
 			>
 				<div
@@ -60,6 +66,6 @@ export function VirtualList() {
 					))}
 				</div>
 			</div>
-		</>
+		</div>
 	);
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, type HTMLAttributes, type RefObject } from "react";
 import { useVerticalScrollBar } from "src/hooks";
 import { maybeRefToValue } from "src/utilities";
@@ -8,7 +10,7 @@ export type VerticalScrollBarProps = {
 };
 
 export type VerticalScrollBarWithContainerProps = VerticalScrollBarProps & {
-	container?: HTMLElement | RefObject<HTMLElement | null | undefined>;
+	container?: HTMLElement | null | RefObject<HTMLElement | null | undefined>;
 };
 
 export const VerticalScrollBar = ({

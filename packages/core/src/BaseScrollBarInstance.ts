@@ -1,4 +1,8 @@
-import { isServer } from "src/utils";
+import {
+	clearUndefinedProperties,
+	isServer,
+	kebabCaseToCamelCase,
+} from "src/utils";
 import {
 	Coordinate,
 	ScrollBarOptions,
@@ -9,8 +13,12 @@ import {
 export abstract class BaseScrollBarInstance {
 	protected options!: ScrollBarOptions;
 	protected store: ScrollBarStore;
+	protected prefix?: string;
 
 	private observer?: ResizeObserver;
+	private elementsToAttachScrollBarStateTo?: Iterable<
+		HTMLElement | null | undefined
+	>;
 
 	constructor(options: Partial<ScrollBarOptions>) {
 		this.options = {
@@ -28,28 +36,35 @@ export abstract class BaseScrollBarInstance {
 			isScrolling: false,
 			isScrollable: false,
 		};
+
+		this.elementsToAttachScrollBarStateTo =
+			options.getElementsToAttachScrollBarStateTo?.();
 	}
 
 	// #region Initialization
 	updateOptions(options: Partial<ScrollBarOptions>) {
+		const computedOptions = clearUndefinedProperties(options);
 		const isContainerElementChanged = this.isElementGetterChanged(
 			this.options.getContainerElement,
-			options.getContainerElement
+			computedOptions.getContainerElement
 		);
 		const isTrackElementChanged = this.isElementGetterChanged(
 			this.options.getTrackElement,
-			options.getTrackElement
+			computedOptions.getTrackElement
 		);
 		const isThumbElementChanged = this.isElementGetterChanged(
 			this.options.getThumbElement,
-			options.getThumbElement
+			computedOptions.getThumbElement
 		);
 
 		this.options = {
-			...options,
+			...this.options,
+			...computedOptions,
 			shouldAttachScrollBarStateToContainer:
-				options.shouldAttachScrollBarStateToContainer ?? true,
+				computedOptions.shouldAttachScrollBarStateToContainer ?? true,
 		};
+
+		this.updateElementsToAttachScrollBarStateTo();
 
 		if (
 			isContainerElementChanged ||
@@ -90,6 +105,24 @@ export abstract class BaseScrollBarInstance {
 			trackSize: this.getTrackElement()?.clientWidth,
 			isScrollable: this.isScrollable(),
 		});
+	}
+
+	private updateElementsToAttachScrollBarStateTo() {
+		const oldElementsToAttachScrollBarStateTo =
+			this.elementsToAttachScrollBarStateTo;
+		this.elementsToAttachScrollBarStateTo =
+			this.options.getElementsToAttachScrollBarStateTo?.();
+
+		if (
+			oldElementsToAttachScrollBarStateTo &&
+			oldElementsToAttachScrollBarStateTo !==
+				this.elementsToAttachScrollBarStateTo
+		) {
+			this.detachScrollBarStateFromElements(
+				oldElementsToAttachScrollBarStateTo,
+				this.prefix
+			);
+		}
 	}
 
 	private getObserver() {
@@ -136,6 +169,12 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	unmount() {
+		if (this.elementsToAttachScrollBarStateTo) {
+			this.detachScrollBarStateFromElements(
+				this.elementsToAttachScrollBarStateTo,
+				this.prefix
+			);
+		}
 		this.removeEventListeners();
 	}
 	// #endregion
@@ -166,7 +205,7 @@ export abstract class BaseScrollBarInstance {
 		const container = this.getContainerElement();
 		if (!container) return;
 
-		this.attachScrollBarStateToElement(container);
+		this.attachScrollBarStateToElement(container, this.prefix);
 	}
 
 	private addContainerElementEventListeners() {
@@ -396,7 +435,7 @@ export abstract class BaseScrollBarInstance {
 		return this.isHoveringElement(event, thumb);
 	}
 
-	private attachScrollBarStateToElement(element: HTMLElement) {
+	private attachScrollBarStateToElement(element: HTMLElement, prefix?: string) {
 		const {
 			thumbSize,
 			thumbOffset,
@@ -408,45 +447,117 @@ export abstract class BaseScrollBarInstance {
 			isScrollable,
 		} = this.store;
 
-		requestAnimationFrame(() => {
-			element.dataset.size = `${trackSize}px`;
-			element.dataset.thumbOffset = `${thumbOffset}px`;
-			element.dataset.thumbSize = `${thumbSize}px`;
+		const computedPrefix = prefix ? `${prefix}-` : "";
 
-			element.style.setProperty("--thumb-offset", `${thumbOffset}px`);
-			element.style.setProperty("--thumb-size", `${thumbSize}px`);
-			element.style.setProperty("--track-size", `${trackSize}px`);
+		requestAnimationFrame(() => {
+			element.dataset[
+				kebabCaseToCamelCase(`${computedPrefix}size`)
+			] = `${trackSize}px`;
+			element.dataset[
+				kebabCaseToCamelCase(`${computedPrefix}thumb-offset`)
+			] = `${thumbOffset}px`;
+			element.dataset[
+				kebabCaseToCamelCase(`${computedPrefix}thumb-size`)
+			] = `${thumbSize}px`;
+
+			element.style.setProperty(
+				`--${computedPrefix}thumb-offset`,
+				`${thumbOffset}px`
+			);
+			element.style.setProperty(
+				`--${computedPrefix}thumb-size`,
+				`${thumbSize}px`
+			);
+			element.style.setProperty(
+				`--${computedPrefix}track-size`,
+				`${trackSize}px`
+			);
 
 			if (isHoveringTrack) {
-				element.dataset.isHoveringTrack = "true";
+				element.dataset[
+					kebabCaseToCamelCase(`is-hovering-${computedPrefix}track`)
+				] = "true";
 			} else {
-				delete element.dataset.isHoveringTrack;
+				delete element.dataset[
+					kebabCaseToCamelCase(`is-hovering-${computedPrefix}track`)
+				];
 			}
 
 			if (isHoveringThumb) {
-				element.dataset.isHoveringThumb = "true";
+				element.dataset[
+					kebabCaseToCamelCase(`is-hovering-${computedPrefix}thumb`)
+				] = "true";
 			} else {
-				delete element.dataset.isHoveringThumb;
+				delete element.dataset[
+					kebabCaseToCamelCase(`is-hovering-${computedPrefix}thumb`)
+				];
 			}
 
 			if (isDraggingThumb) {
-				element.dataset.isDraggingThumb = "true";
+				element.dataset[
+					kebabCaseToCamelCase(`is-dragging-${computedPrefix}thumb`)
+				] = "true";
 			} else {
-				delete element.dataset.isDraggingThumb;
+				delete element.dataset[
+					kebabCaseToCamelCase(`is-dragging-${computedPrefix}thumb`)
+				];
 			}
 
 			if (isScrolling) {
-				element.dataset.isScrolling = "true";
+				element.dataset[kebabCaseToCamelCase(`is-${computedPrefix}scrolling`)] =
+					"true";
 			} else {
-				delete element.dataset.isScrolling;
+				delete element.dataset[
+					kebabCaseToCamelCase(`is-${computedPrefix}scrolling`)
+				];
 			}
 
 			if (isScrollable) {
-				element.dataset.isScrollable = "true";
+				element.dataset[
+					kebabCaseToCamelCase(`is-${computedPrefix}scrollable`)
+				] = "true";
 			} else {
-				delete element.dataset.isScrollable;
+				delete element.dataset[
+					kebabCaseToCamelCase(`is-${computedPrefix}scrollable`)
+				];
 			}
 		});
+	}
+
+	private detachScrollBarStateFromElement(
+		element: HTMLElement,
+		prefix?: string
+	) {
+		const computedPrefix = prefix ? `${prefix}-` : "";
+		delete element.dataset[
+			kebabCaseToCamelCase(`is-${computedPrefix}scrollable`)
+		];
+		delete element.dataset[
+			kebabCaseToCamelCase(`is-hovering-${computedPrefix}track`)
+		];
+		delete element.dataset[
+			kebabCaseToCamelCase(`is-hovering-${computedPrefix}thumb`)
+		];
+		delete element.dataset[
+			kebabCaseToCamelCase(`is-dragging-${computedPrefix}thumb`)
+		];
+		delete element.dataset[
+			kebabCaseToCamelCase(`is-${computedPrefix}scrolling`)
+		];
+
+		element.style.removeProperty(`--${computedPrefix}thumb-offset`);
+		element.style.removeProperty(`--${computedPrefix}thumb-size`);
+		element.style.removeProperty(`--${computedPrefix}track-size`);
+	}
+
+	private detachScrollBarStateFromElements(
+		elements: Iterable<HTMLElement | null | undefined>,
+		prefix?: string
+	) {
+		for (const element of elements) {
+			if (!element) continue;
+			this.detachScrollBarStateFromElement(element, prefix);
+		}
 	}
 	// #endregion
 

@@ -2,6 +2,8 @@ import { BaseScrollBarInstance } from "src/BaseScrollBarInstance";
 import { Coordinate, ThumbDraggingActivatorInfo } from "src/types";
 
 export class VerticalScrollBarInstance extends BaseScrollBarInstance {
+	protected prefix = "vertical";
+
 	protected calculateThumbSizeAndOffset(): {
 		thumbSize: number;
 		thumbOffset: number;

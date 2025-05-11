@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, type HTMLAttributes, type RefObject } from "react";
 import { useHorizontalScrollBar } from "src/hooks";
 import { maybeRefToValue } from "src/utilities";
@@ -8,7 +10,7 @@ export type HorizontalScrollBarProps = {
 };
 
 export type HorizontalScrollBarWithContainerProps = HorizontalScrollBarProps & {
-	container?: HTMLElement | RefObject<HTMLElement | null | undefined>;
+	container?: HTMLElement | null | RefObject<HTMLElement | null | undefined>;
 };
 
 export const HorizontalScrollBar = ({

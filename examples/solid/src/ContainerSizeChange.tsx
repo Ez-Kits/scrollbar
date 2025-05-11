@@ -1,5 +1,5 @@
 import { ScrollBar } from "@ez-kits/scrollbar-solid";
-import { createEffect, createSignal, onCleanup } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 
 export function ContainerSizeChange() {
 	const [containerSize, setContainerSize] = createSignal(300);
@@ -9,86 +9,63 @@ export function ContainerSizeChange() {
 			setContainerSize(300 + Math.random() * 200);
 		}, 1000);
 
-		onCleanup(() => {
-			clearInterval(timer);
-		});
+		return () => clearInterval(timer);
 	});
 
 	return (
-		<div class="relative inline-block">
-			<ScrollBar
-				style={{
-					height: `${containerSize()}px`,
-					width: `${containerSize()}px`,
+		<ScrollBar
+			style={{
+				height: `${containerSize()}px`,
+				width: `${containerSize()}px`,
+				overflow: "auto",
+				"scrollbar-width": "none",
+				"white-space": "nowrap",
+				"margin-left": "500px",
+				position: "relative",
+			}}
+			scrollerProps={{
+				style: {
 					overflow: "auto",
 					"scrollbar-width": "none",
-					"white-space": "nowrap",
-					"margin-left": "500px",
-					border: "4px solid black",
-				}}
-				// vertical={{
-				// 	style: {
-				// 		backgroundColor: "gray",
-				// 		width: 5,
-				// 	},
-				// 	startOffset: 50,
-				// 	endOffset: 50,
-				// }}
-				// horizontal={{
-				// 	startOffset: 50,
-				// 	endOffset: 50,
-				// 	style: {
-				// 		height: 5,
-				// 		backgroundColor: "gray",
-				// 	},
-				// }}
-				vertical={{
-					startOffset: 50,
-					endOffset: 50,
-					trackProps: {
-						class:
-							"!w-1.5 bg-blue-500 !absolute !top-[50px] !right-0 !left-auto",
-						// style: {
-						// 	width: 5,
-						// 	backgroundColor: "blue",
-						// },
+					height: "100%",
+					width: "100%",
+				},
+			}}
+			vertical={{
+				trackProps: {
+					class: "w-1.5 bg-black absolute top-0 !right-0 left-auto h-full",
+				},
+				thumbProps: {
+					class: "bg-gray-500 absolute top-0 !right-0 left-auto w-full",
+					style: {
+						transform: "translateY(var(--thumb-offset))",
+						height: "var(--thumb-size)",
 					},
-					thumbProps: {
-						style: {
-							"background-color": "gray",
-							width: "5px",
-						},
+				},
+			}}
+			horizontal={{
+				trackProps: {
+					class: "bg-black absolute bottom-0 !left-0 !right-auto w-full h-2",
+				},
+				thumbProps: {
+					class: "bg-gray-500 absolute bottom-0 !left-0 !right-auto w-full h-2",
+					style: {
+						transform: "translateX(var(--thumb-offset))",
+						width: "var(--thumb-size)",
 					},
-					withTrack: true,
-				}}
-				horizontal={{
-					startOffset: 50,
-					endOffset: 50,
-					trackProps: {
-						style: {
-							height: "5px",
-						},
-					},
-					thumbProps: {
-						style: {
-							"background-color": "gray",
-							height: "5px",
-						},
-					},
-					withTrack: true,
-				}}
-			>
-				{Array(50)
-					.fill(null)
-					.map(() => (
-						<p>
-							Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-							tempore doloribus numquam? Maiores nostrum quisquam officia modi
-							quis, dolore dignissimos provident consequatur explicabo dicta
-							pariatur assumenda ullam dolor vero repudiandae!
-						</p>
-					))}
-			</ScrollBar>
-		</div>
+				},
+			}}
+		>
+			<For each={Array(50).fill(null)}>
+				{(_, index) => (
+					<p>
+						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
+						tempore doloribus numquam? Maiores nostrum quisquam officia modi
+						quis, dolore dignissimos provident consequatur explicabo dicta
+						pariatur assumenda ullam dolor vero repudiandae!
+					</p>
+				)}
+			</For>
+		</ScrollBar>
 	);
 }

@@ -1,15 +1,8 @@
-import type { HTMLAttributes, PropType, StyleValue } from "vue";
-
-type ClassValue = string | Record<string, boolean>;
+import type { HTMLAttributes, PropType } from "vue";
 
 export interface AxisScrollBarProps {
-	class?: ClassValue | ClassValue[];
 	container?: HTMLElement;
-	autoHide?: boolean;
-	style?: StyleValue;
-	startOffset?: number;
-	endOffset?: number;
-	withTrack?: boolean;
+	shouldAttachScrollBarStateToContainer?: boolean;
 	trackProps?: HTMLAttributes;
 	thumbProps?: HTMLAttributes;
 }
@@ -17,26 +10,12 @@ export interface AxisScrollBarProps {
 export function axisScrollBarProps() {
 	return {
 		container: {
-			type: Object as PropType<HTMLElement>,
+			type: Object as PropType<HTMLElement | null>,
 			required: false,
 		},
-		autoHide: {
+		shouldAttachScrollBarStateToContainer: {
 			type: Boolean as PropType<boolean>,
 			required: false,
-			default: true,
-		},
-		startOffset: {
-			type: Number as PropType<number>,
-			required: false,
-		},
-		endOffset: {
-			type: Number as PropType<number>,
-			required: false,
-		},
-		withTrack: {
-			type: Boolean as PropType<boolean>,
-			required: false,
-			default: false,
 		},
 		trackProps: {
 			type: Object as PropType<HTMLAttributes>,

@@ -20,24 +20,32 @@ export interface ScrollBarProps extends JSX.HTMLAttributes<HTMLDivElement> {
 	 * @default true
 	 */
 	vertical?: boolean | VerticalScrollBarProps;
+
+	/**
+	 * Props for the scroller element
+	 */
+	scrollerProps?: JSX.HTMLAttributes<HTMLDivElement>;
 }
 
 export const ScrollBar = ({
 	children,
 	vertical = true,
 	horizontal = true,
+	scrollerProps,
 	...props
 }: ScrollBarProps) => {
 	const [container, setContainer] = createSignal<HTMLDivElement>();
 
 	return (
-		<div
-			{...props}
-			ref={(el) => {
-				setContainer(el);
-			}}
-		>
-			{children}
+		<div {...props}>
+			<div
+				{...scrollerProps}
+				ref={(el) => {
+					setContainer(el);
+				}}
+			>
+				{children}
+			</div>
 			{horizontal ? (
 				<HorizontalScrollBar
 					container={container()}

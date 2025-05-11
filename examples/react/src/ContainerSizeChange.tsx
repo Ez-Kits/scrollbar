@@ -1,7 +1,5 @@
-import { useState } from "react";
-
 import { ScrollBar } from "@ez-kits/scrollbar-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function ContainerSizeChange() {
 	const [containerSize, setContainerSize] = useState(300);
