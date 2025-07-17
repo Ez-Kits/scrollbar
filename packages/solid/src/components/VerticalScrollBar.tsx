@@ -1,18 +1,13 @@
-import {
-	VerticalScrollBarInstance,
-	type ScrollBarOptions,
-} from "@ez-kits/scrollbar-core";
-import { createEffect, onCleanup } from "solid-js";
-import type { WithoutTrackProps, WithTrackProps } from "src/types";
+import type { JSX } from "solid-js/jsx-runtime";
+import { createVerticalScrollBar } from "src/utilities";
 
-export type VerticalScrollBarProps = Omit<
-	Partial<ScrollBarOptions>,
-	"thumb" | "track" | "container"
-> &
-	(WithTrackProps | WithoutTrackProps);
+export type VerticalScrollBarProps = {
+	trackProps?: JSX.HTMLAttributes<HTMLDivElement>;
+	thumbProps?: JSX.HTMLAttributes<HTMLDivElement>;
+};
 
 export type VerticalScrollBarWithContainerProps = VerticalScrollBarProps & {
-	container?: HTMLElement;
+	container?: HTMLElement | null;
 };
 
 export const VerticalScrollBar = (
@@ -21,38 +16,15 @@ export const VerticalScrollBar = (
 	let thumbRef: HTMLDivElement | undefined;
 	let trackRef: HTMLDivElement | undefined;
 
-	const scrollBarInstance = new VerticalScrollBarInstance({
-		container: props.container,
-		autoHide: props.autoHide,
-		thumb: thumbRef,
-		track: trackRef,
-		startOffset: props.startOffset,
-		endOffset: props.endOffset,
-	});
-	scrollBarInstance.mount();
-	onCleanup(() => {
-		scrollBarInstance.unmount();
+	createVerticalScrollBar({
+		getContainerElement: () => props.container,
+		getTrackElement: () => trackRef,
+		getThumbElement: () => thumbRef,
 	});
 
-	createEffect(() => {
-		console.log("updateOptions", props);
-		scrollBarInstance.updateOptions({
-			container: props.container,
-			autoHide: props.autoHide,
-			thumb: thumbRef,
-			track: trackRef,
-			startOffset: props.startOffset,
-			endOffset: props.endOffset,
-		});
-	});
-
-	if (props.withTrack) {
-		return (
-			<div {...props.trackProps} ref={trackRef}>
-				<div {...props.thumbProps} ref={thumbRef} />
-			</div>
-		);
-	}
-
-	return <div {...props} ref={thumbRef} />;
+	return (
+		<div {...props.trackProps} ref={trackRef}>
+			<div {...props.thumbProps} ref={thumbRef} />
+		</div>
+	);
 };

@@ -1,6 +1,5 @@
 import { ContainerSizeChange } from "./ContainerSizeChange";
 import { NestedScrollBar } from "./NestedScrollBar";
-import { ScrollBarPositionAbsolute } from "./ScrollBarPositionAbsolute";
 import { VirtualList } from "./VirtualList";
 const App = () => {
 	return (
@@ -9,8 +8,6 @@ const App = () => {
 			<NestedScrollBar />
 			<h2>Virtual List</h2>
 			<VirtualList />
-			<h2>ScrollBar Position Absolute</h2>
-			<ScrollBarPositionAbsolute />
 			<h2>Container Size Change</h2>
 			<ContainerSizeChange />
 		</div>

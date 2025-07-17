@@ -14,54 +14,54 @@ onUnmounted(() => {
 </script>
 
 <template>
-	<div class="relative inline-block">
-		<ScrollBar
-			:style="{
-				height: `${containerSize}px`,
-				width: `${containerSize}px`,
+	<ScrollBar
+		:style="{
+			height: `${containerSize}px`,
+			width: `${containerSize}px`,
+			overflow: 'auto',
+			scrollbarWidth: 'none',
+			whiteSpace: 'nowrap',
+			marginLeft: '500px',
+			position: 'relative',
+		}"
+		:scrollerProps="{
+			style: {
 				overflow: 'auto',
 				scrollbarWidth: 'none',
-				whiteSpace: 'nowrap',
-				marginLeft: '500px',
-				border: '4px solid black',
-			}"
-			:vertical="{
-				startOffset: 50,
-				endOffset: 50,
-				trackProps: {
-					class: '!w-1.5 bg-blue-500 !absolute !top-[50px] !right-0 !left-auto',
+				height: '100%',
+				width: '100%',
+			},
+		}"
+		:vertical="{
+			trackProps: {
+				class: 'w-1.5 bg-black absolute top-0 !right-0 left-auto h-full',
+			},
+			thumbProps: {
+				class: 'bg-gray-500 absolute top-0 !right-0 left-auto w-full',
+				style: {
+					transform: 'translateY(var(--thumb-offset))',
+					height: 'var(--thumb-size)',
 				},
-				thumbProps: {
-					style: {
-						backgroundColor: 'gray',
-						width: '5px',
-					},
+			},
+		}"
+		:horizontal="{
+			trackProps: {
+				class: 'bg-black absolute bottom-0 !left-0 !right-auto w-full h-2',
+			},
+			thumbProps: {
+				class: 'bg-gray-500 absolute bottom-0 !left-0 !right-auto w-full h-2',
+				style: {
+					transform: 'translateX(var(--thumb-offset))',
+					width: 'var(--thumb-size)',
 				},
-				withTrack: true,
-			}"
-			:horizontal="{
-				startOffset: 50,
-				endOffset: 50,
-				trackProps: {
-					style: {
-						height: '5px',
-					},
-				},
-				thumbProps: {
-					style: {
-						backgroundColor: 'gray',
-						height: '5px',
-					},
-				},
-				withTrack: true,
-			}"
-		>
-			<p v-for="item in 50" :key="item">
-				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
-				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
-				dolore dignissimos provident consequatur explicabo dicta pariatur
-				assumenda ullam dolor vero repudiandae!
-			</p>
-		</ScrollBar>
-	</div>
+			},
+		}"
+	>
+		<p v-for="index in 50" :key="index">
+			Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas tempore
+			doloribus numquam? Maiores nostrum quisquam officia modi quis, dolore
+			dignissimos provident consequatur explicabo dicta pariatur assumenda ullam
+			dolor vero repudiandae!
+		</p>
+	</ScrollBar>
 </template>

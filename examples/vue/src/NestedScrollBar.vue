@@ -7,26 +7,43 @@ import { ScrollBar } from "@ez-kits/scrollbar-vue";
 		:style="{
 			height: '600px',
 			width: '600px',
+			paddingRight: '10px',
 			overflowY: 'auto',
 			position: 'relative',
 			scrollbarWidth: 'none',
 			whiteSpace: 'nowrap',
 		}"
-		:vertical="{
+		:scrollerProps="{
 			style: {
-				backgroundColor: 'black',
-				width: '5px',
+				overflow: 'auto',
+				scrollbarWidth: 'none',
+				height: '100%',
+				width: '100%',
 			},
-			startOffset: 50,
-			endOffset: 50,
+		}"
+		:vertical="{
+			thumbProps: {
+				class: 'bg-gray-500 absolute top-0 w-2 min-h-4',
+				style: {
+					transform: 'translateY(var(--thumb-offset))',
+					height: 'var(--thumb-size)',
+				},
+			},
+			trackProps: {
+				class: 'bg-black absolute right-0 top-0 bottom-0 w-2',
+			},
 		}"
 		:horizontal="{
-			style: {
-				backgroundColor: 'black',
-				height: '5px',
+			thumbProps: {
+				class: 'bg-gray-500 absolute left-0 right-0 bottom-0 h-2',
+				style: {
+					transform: 'translateX(var(--thumb-offset))',
+					width: 'var(--thumb-size)',
+				},
 			},
-			startOffset: 50,
-			endOffset: 50,
+			trackProps: {
+				class: 'bg-black absolute left-0 right-0 bottom-0 h-2',
+			},
 		}"
 	>
 		<p
@@ -46,39 +63,57 @@ import { ScrollBar } from "@ez-kits/scrollbar-vue";
 			dignissimos provident consequatur explicabo dicta pariatur assumenda ullam
 			dolor vero repudiandae!
 		</p>
-		<p v-for="item in 5" :key="item">
+		<p v-for="index in 5" :key="index">
 			Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas tempore
 			doloribus numquam? Maiores nostrum quisquam officia modi quis, dolore
 			dignissimos provident consequatur explicabo dicta pariatur assumenda ullam
 			dolor vero repudiandae!
 		</p>
+
 		<ScrollBar
 			:style="{
 				height: '300px',
 				width: '300px',
-				overflow: 'auto',
 				scrollbarWidth: 'none',
+				position: 'relative',
+			}"
+			:scrollerProps="{
+				style: {
+					overflow: 'auto',
+					scrollbarWidth: 'none',
+					height: '100%',
+					width: '100%',
+				},
 			}"
 			:vertical="{
-				style: {
-					backgroundColor: 'black',
-					width: '5px',
+				thumbProps: {
+					class:
+						'bg-gray-500 absolute top-0 w-2 min-h-25 group-data-[is-dragging-thumb]:bg-gray-700',
+					style: {
+						transform: 'translateY(var(--thumb-offset))',
+						height: 'var(--thumb-size)',
+					},
+				},
+				trackProps: {
+					class:
+						'group bg-black absolute right-0 top-0 bottom-0 w-2 overflow-hidden',
 				},
 			}"
 			:horizontal="{
-				style: {
-					backgroundColor: 'black',
-					height: '5px',
+				thumbProps: {
+					class:
+						'bg-gray-500 absolute left-0 right-0 bottom-0 h-2 group-data-[is-dragging-thumb]:bg-gray-700',
+					style: {
+						transform: 'translateX(var(--thumb-offset))',
+						width: 'var(--thumb-size)',
+					},
+				},
+				trackProps: {
+					class: 'group bg-black absolute left-0 right-0 bottom-0 h-2',
 				},
 			}"
 		>
-			<p
-				v-for="item in 50"
-				:key="item"
-				:style="{
-					overflowX: 'hidden',
-				}"
-			>
+			<p v-for="index in 50" :key="index">
 				Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
 				tempore doloribus numquam? Maiores nostrum quisquam officia modi quis,
 				dolore dignissimos provident consequatur explicabo dicta pariatur
@@ -87,8 +122,8 @@ import { ScrollBar } from "@ez-kits/scrollbar-vue";
 		</ScrollBar>
 
 		<p
-			v-for="item in 50"
-			:key="item"
+			v-for="index in 5"
+			:key="index"
 			:style="{
 				overflowX: 'hidden',
 			}"

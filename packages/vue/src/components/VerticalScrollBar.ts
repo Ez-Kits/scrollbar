@@ -1,6 +1,6 @@
-import { VerticalScrollBarInstance } from "@ez-kits/scrollbar-core";
 import { axisScrollBarProps } from "src/components/utils";
-import { defineComponent, h, onBeforeUnmount, ref, watch } from "vue";
+import { useVerticalScrollBar } from "src/composables/useVerticalScrollBar";
+import { computed, defineComponent, h, ref, watch } from "vue";
 
 export const VerticalScrollBar = defineComponent({
 	inheritAttrs: true,
@@ -9,52 +9,38 @@ export const VerticalScrollBar = defineComponent({
 		const trackRef = ref<HTMLDivElement>();
 		const thumbRef = ref<HTMLDivElement>();
 
-		const scrollBar = new VerticalScrollBarInstance({
-			...props,
-			thumb: thumbRef.value,
-			track: trackRef.value,
+		const shouldAttachScrollBarStateToContainer = computed(() => {
+			return props.shouldAttachScrollBarStateToContainer ?? true;
 		});
-		scrollBar.mount();
+
+		const verticalScrollBarInstance = useVerticalScrollBar({
+			getContainerElement: () => props.container,
+			getTrackElement: () => trackRef.value,
+			getThumbElement: () => thumbRef.value,
+			shouldAttachScrollBarStateToContainer,
+		});
 
 		watch(
-			() => [
-				props.container,
-				props.autoHide,
-				props.startOffset,
-				props.endOffset,
-				trackRef.value,
-				thumbRef.value,
-			],
-			() => {
-				scrollBar.updateOptions({
-					...props,
-					thumb: thumbRef.value,
-					track: trackRef.value,
+			() => props.container,
+			(value) => {
+				verticalScrollBarInstance.updateOptions({
+					getContainerElement: () => value,
 				});
 			}
 		);
 
-		onBeforeUnmount(() => {
-			scrollBar.unmount();
-		});
-
 		return () =>
-			props.withTrack
-				? h(
-						"div",
-						{
-							ref: trackRef,
-							...attrs,
-							...props.trackProps,
-						},
-						h("div", {
-							ref: thumbRef,
-							...props.thumbProps,
-						})
-				  )
-				: h("div", {
-						ref: thumbRef,
-						...attrs,
-				  });
+			h(
+				"div",
+				{
+					ref: trackRef,
+					...attrs,
+					...props.trackProps,
+				},
+				h("div", {
+					ref: thumbRef,
+					...props.thumbProps,
+				})
+			);
 	},
 });

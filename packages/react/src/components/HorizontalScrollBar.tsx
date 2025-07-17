@@ -1,66 +1,35 @@
-import {
-	HorizontalScrollBarInstance,
-	type ScrollBarOptions,
-} from "@ez-kits/scrollbar-core";
-import { useEffect, useRef, useState, type RefObject } from "react";
-import type { WithoutTrackProps, WithTrackProps } from "src/types";
+"use client";
+
+import { useRef, type HTMLAttributes, type RefObject } from "react";
+import { useHorizontalScrollBar } from "src/hooks";
 import { maybeRefToValue } from "src/utilities";
 
-export type HorizontalScrollBarProps = Omit<
-	Partial<ScrollBarOptions>,
-	"thumb" | "track" | "container"
-> &
-	(WithTrackProps | WithoutTrackProps);
+export type HorizontalScrollBarProps = {
+	trackProps?: HTMLAttributes<HTMLDivElement>;
+	thumbProps?: HTMLAttributes<HTMLDivElement>;
+};
 
 export type HorizontalScrollBarWithContainerProps = HorizontalScrollBarProps & {
-	container?: HTMLElement | RefObject<HTMLElement | null | undefined>;
+	container?: HTMLElement | null | RefObject<HTMLElement | null | undefined>;
 };
 
 export const HorizontalScrollBar = ({
 	container,
-	autoHide = true,
-	startOffset,
-	endOffset,
-	withTrack = false,
-	thumbProps = {},
-	trackProps = {},
-	...props
+	trackProps,
+	thumbProps,
 }: HorizontalScrollBarWithContainerProps) => {
 	const trackRef = useRef<HTMLDivElement>(null);
 	const thumbRef = useRef<HTMLDivElement>(null);
 
-	const [scrollBarInstance] = useState(
-		() =>
-			new HorizontalScrollBarInstance({
-				container: maybeRefToValue(container) || undefined,
-				thumb: thumbRef.current || undefined,
-				track: trackRef.current || undefined,
-				startOffset,
-				endOffset,
-				autoHide,
-			})
-	);
-
-	scrollBarInstance.updateOptions({
-		container: maybeRefToValue(container) || undefined,
-		thumb: thumbRef.current || undefined,
-		track: trackRef.current || undefined,
-		startOffset,
-		endOffset,
-		autoHide,
+	useHorizontalScrollBar({
+		getContainerElement: () => maybeRefToValue(container),
+		getTrackElement: () => trackRef.current,
+		getThumbElement: () => thumbRef.current,
 	});
 
-	useEffect(() => {
-		return scrollBarInstance.mount();
-	}, [scrollBarInstance]);
-
-	if (withTrack) {
-		return (
-			<div {...props} ref={trackRef} {...trackProps}>
-				<div ref={thumbRef} {...thumbProps} />
-			</div>
-		);
-	}
-
-	return <div {...props} ref={thumbRef} />;
+	return (
+		<div ref={trackRef} {...trackProps}>
+			<div ref={thumbRef} {...thumbProps} />
+		</div>
+	);
 };
