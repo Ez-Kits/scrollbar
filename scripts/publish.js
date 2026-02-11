@@ -21,7 +21,7 @@ function publish() {
 			return false;
 		}
 
-		return isPackageChanged(pkg.folder);
+		return isPackageChanged(pkg.folder, releaseVer);
 	});
 
 	if (changedPackages.length === 0) {
@@ -116,13 +116,18 @@ function getLatestPackageVersion(packageName) {
 	}
 }
 
-function isPackageChanged(packagePath) {
+function isPackageChanged(packagePath, releaseVer) {
 	const tags = getTags();
 	if (tags.length < 2) {
 		return true;
 	}
+	
+	const releaseTagIndex = tags.findIndex((tag) => semver.eq(releaseVer, tag));
+	if(releaseTagIndex === -1) {
+		return false;
+	}
 
-	return getChangedFiles(tags[tags.length - 2]).some((path) =>
+	return getChangedFiles(tags[releaseTagIndex - 1]).some((path) =>
 		path.startsWith(packagePath)
 	);
 }
