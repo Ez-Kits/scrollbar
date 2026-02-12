@@ -38,8 +38,6 @@ export const HorizontalScrollBar = defineComponent({
 			scrollBar.unmount();
 		});
 
-		console.log(props);
-
 		return () =>
 			props.withTrack
 				? h(

@@ -35,7 +35,6 @@ export const VerticalScrollBar = (
 	});
 
 	createEffect(() => {
-		console.log("updateOptions", props);
 		scrollBarInstance.updateOptions({
 			container: props.container,
 			autoHide: props.autoHide,

@@ -43,7 +43,6 @@ export const ScrollBar = ({
 
 	return (
 		<div {...props} ref={(el) => {
-			console.log("elll", containerRef)
 			debounceUpdateContainer(el);
 			if (!containerRef) {
 				return;
