@@ -10,7 +10,7 @@ import {
 } from "./VerticalScrollBar";
 
 export interface ScrollBarProps extends HTMLAttributes<HTMLDivElement> {
-	ref?: Ref<HTMLDivElement | null>;
+	containerRef?: Ref<HTMLDivElement | null>;
 	/**
 	 * Horizontal scrollbar props
 	 * @default true
@@ -28,7 +28,7 @@ export const ScrollBar = ({
 	children,
 	vertical = true,
 	horizontal = true,
-	ref,
+	containerRef,
 	...props
 }: ScrollBarProps) => {
 	const [container, setContainer] = useState<HTMLDivElement>();
@@ -43,15 +43,16 @@ export const ScrollBar = ({
 
 	return (
 		<div {...props} ref={(el) => {
+			console.log("elll", containerRef)
 			debounceUpdateContainer(el);
-			if (!ref) {
+			if (!containerRef) {
 				return;
 			}
-
-			if (typeof ref === "function") {
-				ref(el);
+			
+			if (typeof containerRef === "function") {
+				containerRef(el);
 			} else {
-				(ref as MutableRefObject<HTMLDivElement | null>).current = el;
+				(containerRef as MutableRefObject<HTMLDivElement | null>).current = el;
 			}
 		}}>
 			{children}
