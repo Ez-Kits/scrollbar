@@ -1,5 +1,6 @@
 import { BaseScrollBarInstance } from "src/BaseScrollBarInstance";
 import { Coordinate, ThumbDraggingActivatorInfo } from "src/types";
+import { calculateThumbSizeAndOffset } from "src/utils";
 
 export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 	protected prefix = "vertical";
@@ -27,31 +28,22 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		const containerRect = container.getBoundingClientRect();
 		const thumbStyle = window.getComputedStyle(thumb);
 		const thumbMinHeight = Number(
-			thumbStyle.getPropertyValue("min-height").replace("px", "")
+			thumbStyle.getPropertyValue("min-height").replace("px", ""),
 		);
 
-		let thumbSize =
-			(containerRect.height / container.scrollHeight) * trackRect.height;
-		let thumbSizePadding = 0;
+		return calculateThumbSizeAndOffset(
+			container.scrollTop,
+			container.scrollHeight,
+			containerRect.height,
+			trackRect.height,
+			thumbMinHeight,
+		);
+	}
 
-		if (thumbSize < thumbMinHeight) {
-			thumbSizePadding = thumbMinHeight - thumbSize;
-			thumbSize = thumbMinHeight;
-		}
-
-		let thumbOffset =
-			(container.scrollTop / (container.scrollHeight + thumbSizePadding)) *
-			(trackRect.height - thumbSizePadding);
-
-		if (thumbOffset < 0) {
-			thumbOffset = 0;
-		}
-
-		if (thumbOffset > trackRect.height - thumbSize) {
-			thumbOffset = trackRect.height - thumbSize;
-		}
-
-		return { thumbSize, thumbOffset };
+	protected getTrackSize(): number {
+		const track = this.getTrackElement();
+		if (!track) return 0;
+		return track.clientHeight;
 	}
 
 	protected updateContainerScrollOffsetOnTrackPress(event: MouseEvent): void {
@@ -74,7 +66,7 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 
 	protected updateContainerScrollOffsetOnThumbDragging(
 		activatorInfo: ThumbDraggingActivatorInfo,
-		event: MouseEvent
+		event: MouseEvent,
 	): void {
 		const container = this.getContainerElement();
 		const thumb = this.getThumbElement();

@@ -7,12 +7,12 @@ import type { ToMaybeAccessorObject } from "src/types";
 import { getValueFromAccessor } from "src/utilities/accessor";
 
 export function createHorizontalScrollBar(
-	options: Partial<ToMaybeAccessorObject<ScrollBarOptions>>
+	options: Partial<ToMaybeAccessorObject<ScrollBarOptions>>,
 ) {
 	const horizontalScrollBarInstance = new HorizontalScrollBarInstance({
 		...options,
 		shouldAttachScrollBarStateToContainer: getValueFromAccessor(
-			options.shouldAttachScrollBarStateToContainer
+			options.shouldAttachScrollBarStateToContainer,
 		),
 	});
 
@@ -20,7 +20,7 @@ export function createHorizontalScrollBar(
 		horizontalScrollBarInstance.updateOptions({
 			...options,
 			shouldAttachScrollBarStateToContainer: getValueFromAccessor(
-				options.shouldAttachScrollBarStateToContainer
+				options.shouldAttachScrollBarStateToContainer,
 			),
 		});
 	});
