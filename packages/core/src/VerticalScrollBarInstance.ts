@@ -27,9 +27,13 @@ export class VerticalScrollBarInstance extends BaseScrollBarInstance {
 		const trackRect = track.getBoundingClientRect();
 		const containerRect = container.getBoundingClientRect();
 		const thumbStyle = window.getComputedStyle(thumb);
-		const thumbMinHeight = Number(
+		let thumbMinHeight = Number(
 			thumbStyle.getPropertyValue("min-height").replace("px", ""),
 		);
+
+		if (Number.isNaN(thumbMinHeight)) {
+			thumbMinHeight = 0;
+		}
 
 		return calculateThumbSizeAndOffset(
 			container.scrollTop,

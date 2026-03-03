@@ -1,30 +1,25 @@
-import {
-	clearUndefinedProperties,
-	isEqual,
-	isServer,
-	kebabCaseToCamelCase,
-} from "src/utils";
+import { ScrollBarEventBinding } from "./ScrollBarEventBinding";
+import { ScrollBarStateAttachment } from "./ScrollBarStateAttachment";
 import {
 	Coordinate,
 	ScrollBarOptions,
 	ScrollBarStore,
 	ThumbDraggingActivatorInfo,
 } from "./types";
+import { clearUndefinedProperties, isEqual, isServer } from "./utils";
 
 export abstract class BaseScrollBarInstance {
 	protected options!: ScrollBarOptions;
 	protected store: ScrollBarStore;
 	protected prefix?: string;
 
-	private observer?: ResizeObserver;
-	private resizeScheduled = false;
-	private lastAttachedStateByElement = new WeakMap<
-		HTMLElement,
-		Record<string, ScrollBarStore>
-	>();
+	private stateAttachment: ScrollBarStateAttachment;
+	private eventBinding: ScrollBarEventBinding;
 	private elementsToAttachScrollBarStateTo?: Iterable<
 		HTMLElement | null | undefined
 	>;
+	private lastContainerScrollOffset: Coordinate = { x: 0, y: 0 };
+	private thumbDraggingActivator?: ThumbDraggingActivatorInfo;
 
 	constructor(options: Partial<ScrollBarOptions>) {
 		this.options = {
@@ -45,6 +40,22 @@ export abstract class BaseScrollBarInstance {
 
 		this.elementsToAttachScrollBarStateTo =
 			options.getElementsToAttachScrollBarStateTo?.();
+
+		this.stateAttachment = new ScrollBarStateAttachment(() => this.store);
+		this.eventBinding = new ScrollBarEventBinding({
+			getContainerElement: () => this.getContainerElement(),
+			getTrackElement: () => this.getTrackElement(),
+			getThumbElement: () => this.getThumbElement(),
+			onResize: () => this.handleResize(),
+			onContainerMouseMove: (e) => this.handleContainerMouseMove(e),
+			onContainerScroll: () => this.handleContainerScroll(),
+			onContainerScrollEnd: () => this.handleContainerScrollEnd(),
+			onTrackMouseDown: (e) => this.handleTrackMouseDown(e),
+			onTrackWheel: (e) => this.handleTrackWheel(e),
+			onThumbMouseDown: (e) => this.handleThumbMouseDown(e),
+			onThumbMouseMove: (e) => this.handleThumbMouseMove(e),
+			onThumbMouseUp: () => this.handleThumbMouseUp(),
+		});
 	}
 
 	// #region Initialization
@@ -77,8 +88,9 @@ export abstract class BaseScrollBarInstance {
 			isTrackElementChanged ||
 			isThumbElementChanged
 		) {
-			this.removeEventListeners();
-			this.addEventListeners();
+			this.eventBinding.remove();
+			this.eventBinding.add();
+			this.initialScrollBarElement();
 		}
 	}
 
@@ -108,7 +120,7 @@ export abstract class BaseScrollBarInstance {
 		this.updateStore({
 			thumbSize,
 			thumbOffset,
-			trackSize: this.getTrackElement()?.clientWidth,
+			trackSize: this.getTrackSize(),
 			isScrollable: this.isScrollable(),
 		});
 	}
@@ -124,54 +136,15 @@ export abstract class BaseScrollBarInstance {
 			oldElementsToAttachScrollBarStateTo !==
 				this.elementsToAttachScrollBarStateTo
 		) {
-			this.detachScrollBarStateFromElements(
+			this.stateAttachment.detachFromElements(
 				oldElementsToAttachScrollBarStateTo,
 				this.prefix,
 			);
 		}
 	}
 
-	private getObserver() {
-		if (isServer()) return;
-
-		if (!this.observer) {
-			this.observer = new ResizeObserver(this.handleResize);
-		}
-
-		return this.observer;
-	}
-
-	private handleResize = () => {
-		if (this.resizeScheduled) return;
-		this.resizeScheduled = true;
-		requestAnimationFrame(() => {
-			this.resizeScheduled = false;
-			const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
-			this.updateStore({
-				trackSize: this.getTrackSize(),
-				thumbSize,
-				thumbOffset,
-				isScrollable: this.isScrollable(),
-			});
-		});
-	};
-
-	private addEventListeners() {
-		if (isServer()) return;
-
-		this.addContainerElementEventListeners();
-		this.addTrackElementEventListeners();
-		this.addThumbElementEventListeners();
-	}
-
-	private removeEventListeners() {
-		this.removeContainerElementEventListeners();
-		this.removeTrackElementEventListeners();
-		this.removeThumbElementEventListeners();
-	}
-
 	mount() {
-		this.addEventListeners();
+		this.eventBinding.add();
 		this.initialScrollBarElement();
 
 		return () => {
@@ -181,12 +154,12 @@ export abstract class BaseScrollBarInstance {
 
 	unmount() {
 		if (this.elementsToAttachScrollBarStateTo) {
-			this.detachScrollBarStateFromElements(
+			this.stateAttachment.detachFromElements(
 				this.elementsToAttachScrollBarStateTo,
 				this.prefix,
 			);
 		}
-		this.removeEventListeners();
+		this.eventBinding.remove();
 	}
 	// #endregion
 
@@ -201,64 +174,50 @@ export abstract class BaseScrollBarInstance {
 	}
 
 	private onStoreUpdate() {
-		this.updateContainerElement();
-		this.updateTrackElement();
-		this.updateThumbElement();
+		if (this.options.shouldAttachScrollBarStateToContainer) {
+			const container = this.getContainerElement();
+			if (container) {
+				this.stateAttachment.attach(container, this.prefix);
+			}
+		}
+		const track = this.getTrackElement();
+		if (track) {
+			this.stateAttachment.attach(track);
+		}
+
+		if (this.elementsToAttachScrollBarStateTo) {
+			for (const element of this.elementsToAttachScrollBarStateTo) {
+				if (element) {
+					this.stateAttachment.attach(element);
+				}
+			}
+		}
 	}
 	// #endregion
 
-	// #region Container
-	private containerEventAbortController = new AbortController();
-	private lastContainerScrollOffset: Coordinate = { x: 0, y: 0 };
-
+	// #region Element getters
 	protected getContainerElement() {
 		return this.options.getContainerElement?.();
 	}
 
-	private updateContainerElement() {
-		if (!this.options.shouldAttachScrollBarStateToContainer) return;
-		const container = this.getContainerElement();
-		if (!container) return;
-
-		this.attachScrollBarStateToElement(container, this.prefix);
+	protected getTrackElement() {
+		return this.options.getTrackElement?.();
 	}
 
-	private addContainerElementEventListeners() {
-		const container = this.getContainerElement();
-		const track = this.getTrackElement();
-		if (!container || !track) return;
-
-		const observer = this.getObserver();
-		observer?.observe(container);
-
-		this.containerEventAbortController = new AbortController();
-
-		if (container.contains(track)) {
-			container.addEventListener("mousemove", this.handleContainerMouseMove, {
-				signal: this.containerEventAbortController.signal,
-			});
-		} else {
-			document.body.addEventListener(
-				"mousemove",
-				this.handleContainerMouseMove,
-				{
-					capture: true,
-					signal: this.containerEventAbortController.signal,
-				},
-			);
-		}
-
-		container.addEventListener("scroll", this.handleContainerScroll, {
-			signal: this.containerEventAbortController.signal,
-		});
-		container.addEventListener("scrollend", this.handleContainerScrollEnd, {
-			signal: this.containerEventAbortController.signal,
-		});
+	protected getThumbElement() {
+		return this.options.getThumbElement?.();
 	}
+	// #endregion
 
-	private removeContainerElementEventListeners() {
-		this.containerEventAbortController.abort();
-		this.getObserver()?.disconnect();
+	// #region Container event handlers
+	private handleResize() {
+		const { thumbSize, thumbOffset } = this.calculateThumbSizeAndOffset();
+		this.updateStore({
+			trackSize: this.getTrackSize(),
+			thumbSize,
+			thumbOffset,
+			isScrollable: this.isScrollable(),
+		});
 	}
 
 	private handleContainerMouseMove = (event: MouseEvent) => {
@@ -301,54 +260,17 @@ export abstract class BaseScrollBarInstance {
 	};
 	// #endregion
 
-	// #region Scrollbar Track
-	private trackEventAbortController = new AbortController();
-
-	protected getTrackElement() {
-		return this.options.getTrackElement?.();
-	}
-
-	private updateTrackElement() {
-		const track = this.getTrackElement();
-		if (!track) return;
-
-		this.attachScrollBarStateToElement(track);
-	}
-
-	private addTrackElementEventListeners() {
-		const track = this.getTrackElement();
-		if (!track) return;
-
-		const observer = this.getObserver();
-		observer?.observe(track);
-
-		this.trackEventAbortController = new AbortController();
-		track.addEventListener("mousedown", this.handleTrackMouseDown, {
-			signal: this.trackEventAbortController.signal,
-		});
-		track.addEventListener("wheel", this.handleTrackWheel, {
-			signal: this.trackEventAbortController.signal,
-		});
-	}
-
-	private removeTrackElementEventListeners() {
-		this.trackEventAbortController.abort();
-		this.getObserver()?.disconnect();
-	}
-
+	// #region Track event handlers
 	private handleTrackMouseDown = (event: MouseEvent) => {
 		if (event.target === this.getThumbElement()) {
 			return;
 		}
-
 		this.updateContainerScrollOffsetOnTrackPress(event);
 	};
 
 	private handleTrackWheel = (event: WheelEvent) => {
 		const container = this.getContainerElement();
-		if (!container) {
-			return;
-		}
+		if (!container) return;
 
 		event.preventDefault();
 		container.scrollLeft += event.deltaX;
@@ -356,41 +278,7 @@ export abstract class BaseScrollBarInstance {
 	};
 	// #endregion
 
-	// #region Scrollbar Thumb
-	private thumbEventAbortController = new AbortController();
-	private thumbDraggingActivator?: ThumbDraggingActivatorInfo;
-
-	protected getThumbElement() {
-		return this.options.getThumbElement?.();
-	}
-
-	private updateThumbElement() {
-		// Do nothing
-	}
-
-	private addThumbElementEventListeners() {
-		const thumb = this.getThumbElement();
-		if (!thumb) return;
-
-		this.thumbEventAbortController = new AbortController();
-
-		thumb.addEventListener("mousedown", this.handleThumbMouseDown, {
-			capture: true,
-			signal: this.thumbEventAbortController.signal,
-		});
-		document.body.addEventListener("mousemove", this.handleThumbMouseMove, {
-			signal: this.thumbEventAbortController.signal,
-		});
-		window.addEventListener("mouseup", this.handleThumbMouseUp, {
-			capture: true,
-			signal: this.thumbEventAbortController.signal,
-		});
-	}
-
-	private removeThumbElementEventListeners() {
-		this.thumbEventAbortController.abort();
-	}
-
+	// #region Thumb event handlers
 	private handleThumbMouseDown = (event: MouseEvent) => {
 		event.stopImmediatePropagation();
 		this.thumbDraggingActivator = {
@@ -419,7 +307,7 @@ export abstract class BaseScrollBarInstance {
 	};
 	// #endregion
 
-	// #region Helpers
+	// #region Hover helpers
 	private isHoveringElement(event: MouseEvent, element: HTMLElement): boolean {
 		if (element.contains(event.target as Node) || element === event.target) {
 			return true;
@@ -439,157 +327,18 @@ export abstract class BaseScrollBarInstance {
 
 	protected isHoveringTrack(event: MouseEvent): boolean {
 		const track = this.getTrackElement();
-		if (!track) {
-			return false;
-		}
-
+		if (!track) return false;
 		return this.isHoveringElement(event, track);
 	}
 
 	protected isHoveringThumb(event: MouseEvent): boolean {
 		const thumb = this.getThumbElement();
-		if (!thumb) {
-			return false;
-		}
-
+		if (!thumb) return false;
 		return this.isHoveringElement(event, thumb);
-	}
-
-	private attachScrollBarStateToElement(element: HTMLElement, prefix?: string) {
-		const current = { ...this.store };
-		const prefixKey = prefix ?? "";
-		const last = this.lastAttachedStateByElement.get(element)?.[prefixKey];
-		if (last && isEqual(current, last)) {
-			return;
-		}
-
-		const computedPrefix = prefix ? `${prefix}-` : "";
-
-		requestAnimationFrame(() => {
-			const currentFrame = { ...this.store };
-			const lastFrame =
-				this.lastAttachedStateByElement.get(element)?.[prefixKey];
-
-			const s = (key: keyof ScrollBarStore) =>
-				lastFrame?.[key] !== currentFrame[key];
-			const sizeChanged = s("trackSize") || s("thumbSize") || s("thumbOffset");
-			const trackSizePx = `${currentFrame.trackSize}px`;
-			const thumbOffsetPx = `${currentFrame.thumbOffset}px`;
-			const thumbSizePx = `${currentFrame.thumbSize}px`;
-
-			if (sizeChanged) {
-				element.dataset[kebabCaseToCamelCase(`${computedPrefix}size`)] =
-					trackSizePx;
-				element.dataset[kebabCaseToCamelCase(`${computedPrefix}thumb-offset`)] =
-					thumbOffsetPx;
-				element.dataset[kebabCaseToCamelCase(`${computedPrefix}thumb-size`)] =
-					thumbSizePx;
-				element.style.setProperty(
-					`--${computedPrefix}thumb-offset`,
-					thumbOffsetPx,
-				);
-				element.style.setProperty(`--${computedPrefix}thumb-size`, thumbSizePx);
-				element.style.setProperty(`--${computedPrefix}track-size`, trackSizePx);
-			}
-
-			const setBoolDataset = (key: string, value: boolean) => {
-				const dataKey = kebabCaseToCamelCase(key);
-				if (value) {
-					element.dataset[dataKey] = "true";
-				} else {
-					delete element.dataset[dataKey];
-				}
-			};
-
-			if (lastFrame?.isHoveringTrack !== currentFrame.isHoveringTrack) {
-				setBoolDataset(
-					`is-hovering-${computedPrefix}track`,
-					currentFrame.isHoveringTrack,
-				);
-			}
-			if (lastFrame?.isHoveringThumb !== currentFrame.isHoveringThumb) {
-				setBoolDataset(
-					`is-hovering-${computedPrefix}thumb`,
-					currentFrame.isHoveringThumb,
-				);
-			}
-			if (lastFrame?.isDraggingThumb !== currentFrame.isDraggingThumb) {
-				setBoolDataset(
-					`is-dragging-${computedPrefix}thumb`,
-					currentFrame.isDraggingThumb,
-				);
-			}
-			if (lastFrame?.isScrolling !== currentFrame.isScrolling) {
-				setBoolDataset(
-					`is-${computedPrefix}scrolling`,
-					currentFrame.isScrolling,
-				);
-			}
-			if (lastFrame?.isScrollable !== currentFrame.isScrollable) {
-				setBoolDataset(
-					`is-${computedPrefix}scrollable`,
-					currentFrame.isScrollable,
-				);
-			}
-
-			const byElement = this.lastAttachedStateByElement.get(element) ?? {};
-			this.lastAttachedStateByElement.set(element, {
-				...byElement,
-				[prefixKey]: { ...currentFrame },
-			});
-		});
-	}
-
-	private detachScrollBarStateFromElement(
-		element: HTMLElement,
-		prefix?: string,
-	) {
-		const prefixKey = prefix ?? "";
-		const byElement = this.lastAttachedStateByElement.get(element);
-		if (byElement) {
-			const next = { ...byElement };
-			delete next[prefixKey];
-			if (Object.keys(next).length === 0) {
-				this.lastAttachedStateByElement.delete(element);
-			} else {
-				this.lastAttachedStateByElement.set(element, next);
-			}
-		}
-
-		const computedPrefix = prefix ? `${prefix}-` : "";
-		delete element.dataset[
-			kebabCaseToCamelCase(`is-${computedPrefix}scrollable`)
-		];
-		delete element.dataset[
-			kebabCaseToCamelCase(`is-hovering-${computedPrefix}track`)
-		];
-		delete element.dataset[
-			kebabCaseToCamelCase(`is-hovering-${computedPrefix}thumb`)
-		];
-		delete element.dataset[
-			kebabCaseToCamelCase(`is-dragging-${computedPrefix}thumb`)
-		];
-		delete element.dataset[
-			kebabCaseToCamelCase(`is-${computedPrefix}scrolling`)
-		];
-
-		element.style.removeProperty(`--${computedPrefix}thumb-offset`);
-		element.style.removeProperty(`--${computedPrefix}thumb-size`);
-		element.style.removeProperty(`--${computedPrefix}track-size`);
-	}
-
-	private detachScrollBarStateFromElements(
-		elements: Iterable<HTMLElement | null | undefined>,
-		prefix?: string,
-	) {
-		for (const element of elements) {
-			if (!element) continue;
-			this.detachScrollBarStateFromElement(element, prefix);
-		}
 	}
 	// #endregion
 
-	// #region Calculations
+	// #region Abstract (axis-specific)
 	protected abstract calculateThumbSizeAndOffset(): {
 		thumbSize: number;
 		thumbOffset: number;

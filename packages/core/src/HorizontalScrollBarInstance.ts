@@ -27,9 +27,13 @@ export class HorizontalScrollBarInstance extends BaseScrollBarInstance {
 		const trackRect = track.getBoundingClientRect();
 		const containerRect = container.getBoundingClientRect();
 		const thumbStyle = window.getComputedStyle(thumb);
-		const thumbMinWidth = Number(
+		let thumbMinWidth = Number(
 			thumbStyle.getPropertyValue("min-width").replace("px", ""),
 		);
+
+		if (Number.isNaN(thumbMinWidth)) {
+			thumbMinWidth = 0;
+		}
 
 		return calculateThumbSizeAndOffset(
 			container.scrollLeft,
