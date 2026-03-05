@@ -6,7 +6,8 @@
 		"nx": "nx",
 		"build": "nx run-many --projects=packages/** --target=build --parallel=6",
 		"dev": "nx run-many --projects=packages/** --target=dev --parallel=6",
-		"publish-packages": "node scripts/publish.js"
+		"publish-packages": "node scripts/publish.js",
+		"gen-doc-search-data": "node scripts/gen-doc-search-data.js"
 	},
 	"private": true,
 	"dependencies": {},

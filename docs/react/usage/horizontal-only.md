@@ -41,3 +41,5 @@ You can omit `horizontal={true}` — it’s the default. Only the horizontal scr
 Tip: use a fixed or max width on the wrapper and ensure the inner content can overflow horizontally (e.g. `whiteSpace: "nowrap"` or a wide inner element).
 
 Next: [Custom styling](/react/usage/custom-styling) to style the track and thumb.
+
+To place the horizontal scrollbar in a custom position (e.g. above the content), use the standalone [HorizontalScrollBar](/react/usage/using-horizontal-scroll-bar) component instead.

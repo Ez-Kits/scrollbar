@@ -39,6 +39,14 @@
 							"slug": "/usage/horizontal-only"
 						},
 						{
+							"text": "Using VerticalScrollBar (Standalone)",
+							"slug": "/usage/using-vertical-scroll-bar"
+						},
+						{
+							"text": "Using HorizontalScrollBar (Standalone)",
+							"slug": "/usage/using-horizontal-scroll-bar"
+						},
+						{
 							"text": "Custom Styling",
 							"slug": "/usage/custom-styling"
 						},

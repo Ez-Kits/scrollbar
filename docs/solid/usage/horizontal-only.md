@@ -39,3 +39,5 @@ Only the horizontal scrollbar will appear when the content is wider than the vis
 Tip: use a fixed or max width on the wrapper and ensure the inner content can overflow horizontally (e.g. `whiteSpace: "nowrap"`).
 
 Next: [Custom styling](/solid/usage/custom-styling) to style the track and thumb.
+
+To place the horizontal scrollbar in a custom position (e.g. above the content), use the standalone [HorizontalScrollBar](/solid/usage/using-horizontal-scroll-bar) component instead.

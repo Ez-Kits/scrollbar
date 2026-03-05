@@ -40,3 +40,5 @@ You can omit `vertical={true}` — it’s the default. Only the vertical scrollb
 - When you don’t want a horizontal bar at the bottom even if the content is slightly wider (e.g. long lines that you’re okay to have clipped or wrapped).
 
 Next: [Horizontal only](/react/usage/horizontal-only) for the opposite case.
+
+To place the vertical scrollbar in a custom position (e.g. on the left), use the standalone [VerticalScrollBar](/react/usage/using-vertical-scroll-bar) component instead.

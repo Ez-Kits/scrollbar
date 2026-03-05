@@ -37,3 +37,5 @@ You can omit `:vertical="true"` — it's the default. Only the vertical scrollba
 - When you don't want a horizontal bar at the bottom.
 
 Next: [Horizontal only](/vue/usage/horizontal-only) for the opposite case.
+
+To place the vertical scrollbar in a custom position (e.g. on the left), use the standalone [VerticalScrollBar](/vue/usage/using-vertical-scroll-bar) component instead.
