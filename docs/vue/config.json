@@ -1,0 +1,102 @@
+{
+	"sidebar": [
+		{
+			"label": "Guide",
+			"icon": "material-symbols-book-4-rounded",
+			"children": [
+				{
+					"text": "Getting Started",
+					"icon": "material-symbols-light-motion-play-outline",
+					"children": [
+						{
+							"text": "Introduction",
+							"slug": "/getting-started/introduction"
+						},
+						{
+							"text": "Installation",
+							"slug": "/getting-started/installation"
+						},
+						{
+							"text": "Concepts",
+							"slug": "/getting-started/concepts"
+						}
+					]
+				},
+				{
+					"text": "Usage",
+					"icon": "ic-baseline-architecture",
+					"children": [
+						{
+							"text": "Basic Usage",
+							"slug": "/usage/basic-usage"
+						},
+						{
+							"text": "Vertical Only",
+							"slug": "/usage/vertical-only"
+						},
+						{
+							"text": "Horizontal Only",
+							"slug": "/usage/horizontal-only"
+						},
+						{
+							"text": "Custom Styling",
+							"slug": "/usage/custom-styling"
+						},
+						{
+							"text": "Using Composables",
+							"slug": "/usage/using-composables"
+						}
+					]
+				},
+				{
+					"text": "Example",
+					"icon": "material-symbols-play-shapes-outline-rounded",
+					"children": [
+						{
+							"text": "Basic Usage",
+							"slug": "/example"
+						}
+					]
+				}
+			]
+		},
+		{
+			"label": "API",
+			"icon": "mdi-api",
+			"children": [
+				{
+					"text": "Components",
+					"icon": "material-symbols-play-shapes-outline-rounded",
+					"children": [
+						{
+							"text": "ScrollBar",
+							"slug": "/components/scroll-bar"
+						},
+						{
+							"text": "VerticalScrollBar",
+							"slug": "/components/vertical-scroll-bar"
+						},
+						{
+							"text": "HorizontalScrollBar",
+							"slug": "/components/horizontal-scroll-bar"
+						}
+					]
+				},
+				{
+					"text": "Composables",
+					"icon": "mdi-hook",
+					"children": [
+						{
+							"text": "useVerticalScrollBar",
+							"slug": "/composables/use-vertical-scroll-bar"
+						},
+						{
+							"text": "useHorizontalScrollBar",
+							"slug": "/composables/use-horizontal-scroll-bar"
+						}
+					]
+				}
+			]
+		}
+	]
+}
