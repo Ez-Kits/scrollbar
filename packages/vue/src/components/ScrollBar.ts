@@ -47,13 +47,13 @@ export const ScrollBar = defineComponent({
 							ref: containerRef,
 							...props.scrollerProps,
 						},
-						slots.default?.()
+						slots.default?.(),
 					),
 					props.vertical
 						? h(VerticalScrollBar, {
 								container: containerRef.value,
 								...(typeof props.vertical === "object" ? props.vertical : {}),
-						  })
+							})
 						: null,
 					props.horizontal
 						? h(HorizontalScrollBar, {
@@ -61,9 +61,9 @@ export const ScrollBar = defineComponent({
 								...(typeof props.horizontal === "object"
 									? props.horizontal
 									: {}),
-						  })
+							})
 						: null,
-				]
+				],
 			);
 	},
 });

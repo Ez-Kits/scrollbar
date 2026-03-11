@@ -18,15 +18,19 @@ export const HorizontalScrollBar = defineComponent({
 			getTrackElement: () => trackRef.value,
 			getThumbElement: () => thumbRef.value,
 			shouldAttachScrollBarStateToContainer,
+			getElementsToAttachScrollBarStateTo:
+				props.getElementsToAttachScrollBarStateTo,
 		});
 
 		watch(
-			() => props.container,
-			(value) => {
+			() =>
+				[props.container, props.getElementsToAttachScrollBarStateTo] as const,
+			([container, getElementsToAttachScrollBarStateTo]) => {
 				horizontalScrollBarInstance.updateOptions({
-					getContainerElement: () => value,
+					getContainerElement: () => container,
+					getElementsToAttachScrollBarStateTo,
 				});
-			}
+			},
 		);
 
 		return () =>
@@ -41,7 +45,7 @@ export const HorizontalScrollBar = defineComponent({
 					ref: thumbRef,
 					...attrs,
 					...props.thumbProps,
-				})
+				}),
 			);
 	},
 });

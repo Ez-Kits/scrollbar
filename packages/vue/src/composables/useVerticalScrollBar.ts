@@ -6,23 +6,23 @@ import type { ToMaybeRefObject } from "src/types";
 import { computed, onBeforeUnmount, onMounted, toValue, watch } from "vue";
 
 export function useVerticalScrollBar(
-	options: Partial<ToMaybeRefObject<ScrollBarOptions>>
+	options: Partial<ToMaybeRefObject<ScrollBarOptions>>,
 ) {
 	const computedOptions = computed(() => ({
 		...options,
 		shouldAttachScrollBarStateToContainer: toValue(
-			options.shouldAttachScrollBarStateToContainer
+			options.shouldAttachScrollBarStateToContainer,
 		),
 	}));
 	const verticalScrollBarInstance = new VerticalScrollBarInstance(
-		computedOptions.value
+		computedOptions.value,
 	);
 
 	watch(
 		() => computedOptions.value,
 		(value) => {
 			verticalScrollBarInstance.updateOptions(value);
-		}
+		},
 	);
 
 	onMounted(() => {

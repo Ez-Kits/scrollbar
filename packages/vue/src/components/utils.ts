@@ -17,6 +17,12 @@ export function axisScrollBarProps() {
 			type: Boolean as PropType<boolean>,
 			required: false,
 		},
+		getElementsToAttachScrollBarStateTo: {
+			type: Function as PropType<
+				() => Iterable<HTMLElement | null | undefined>
+			>,
+			required: false,
+		},
 		trackProps: {
 			type: Object as PropType<HTMLAttributes>,
 			required: false,

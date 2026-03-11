@@ -18,15 +18,19 @@ export const VerticalScrollBar = defineComponent({
 			getTrackElement: () => trackRef.value,
 			getThumbElement: () => thumbRef.value,
 			shouldAttachScrollBarStateToContainer,
+			getElementsToAttachScrollBarStateTo:
+				props.getElementsToAttachScrollBarStateTo,
 		});
 
 		watch(
-			() => props.container,
-			(value) => {
+			() =>
+				[props.container, props.getElementsToAttachScrollBarStateTo] as const,
+			([container, getElementsToAttachScrollBarStateTo]) => {
 				verticalScrollBarInstance.updateOptions({
-					getContainerElement: () => value,
+					getContainerElement: () => container,
+					getElementsToAttachScrollBarStateTo,
 				});
-			}
+			},
 		);
 
 		return () =>
@@ -40,7 +44,7 @@ export const VerticalScrollBar = defineComponent({
 				h("div", {
 					ref: thumbRef,
 					...props.thumbProps,
-				})
+				}),
 			);
 	},
 });

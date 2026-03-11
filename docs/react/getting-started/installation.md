@@ -22,8 +22,6 @@ yarn add @ez-kits/scrollbar-react
 pnpm add @ez-kits/scrollbar-react
 ```
 
-The library will install `@ez-kits/scrollbar-core` as a dependency. You don't need to install it yourself.
-
 ## Step 2: Use the ScrollBar component
 
 There’s no global setup. Import `ScrollBar` where you need a scrollable area:
@@ -33,10 +31,59 @@ import { ScrollBar } from "@ez-kits/scrollbar-react";
 
 function MyComponent() {
 	return (
-		<ScrollBar style={{ height: 300, overflow: "hidden" }}>
-			<div style={{ padding: 16 }}>
-				<p>Your long content here...</p>
-			</div>
+		<ScrollBar
+			style={{
+				height: 600,
+				width: 600,
+				paddingRight: 10,
+				overflowY: "auto",
+				position: "relative",
+				scrollbarWidth: "none",
+				whiteSpace: "nowrap",
+			}}
+			scrollerProps={{
+				style: {
+					overflow: "auto",
+					scrollbarWidth: "none",
+					height: "100%",
+					width: "100%",
+				},
+			}}
+			vertical={{
+				thumbProps: {
+					className: "bg-gray-500 absolute top-0 w-2 min-h-4",
+					style: {
+						transform: "translateY(var(--thumb-offset))",
+						height: "var(--thumb-size)",
+					},
+				},
+				trackProps: {
+					className: "bg-black absolute right-0 top-0 bottom-0 w-2",
+				},
+			}}
+			horizontal={{
+				thumbProps: {
+					className: "bg-gray-500 absolute left-0 right-0 bottom-0 h-2",
+					style: {
+						transform: "translateX(var(--thumb-offset))",
+						width: "var(--thumb-size)",
+					},
+				},
+				trackProps: {
+					className: "bg-black absolute left-0 right-0 bottom-0 h-2",
+				},
+			}}
+		>
+			{Array(50)
+				.fill(null)
+				.map((_, index) => (
+					<p key={index}>
+						Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptas
+						tempore doloribus numquam? Maiores nostrum quisquam officia modi
+						quis, dolore dignissimos provident consequatur explicabo dicta
+						pariatur assumenda ullam dolor vero repudiandae!
+					</p>
+				))}
 		</ScrollBar>
 	);
 }
