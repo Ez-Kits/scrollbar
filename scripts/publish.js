@@ -21,7 +21,7 @@ function publish() {
 			return false;
 		}
 
-		return isPackageChanged(pkg.folder);
+		return isPackageChanged(pkg.folder, releaseVer);
 	});
 
 	if (changedPackages.length === 0) {
@@ -42,7 +42,7 @@ function publish() {
 				const result = replacePackageVersion(
 					pkg.packageJson,
 					changedPackage.name,
-					releaseVer.version
+					releaseVer.version,
 				);
 
 				if (result && !changedPackages.includes(pkg)) {
@@ -79,7 +79,7 @@ function getInternalPackages() {
 		const packageJson = JSON.parse(
 			readFileSync(path, {
 				encoding: "utf8",
-			})
+			}),
 		);
 
 		return {
@@ -116,14 +116,19 @@ function getLatestPackageVersion(packageName) {
 	}
 }
 
-function isPackageChanged(packagePath) {
+function isPackageChanged(packagePath, releaseVer) {
 	const tags = getTags();
 	if (tags.length < 2) {
 		return true;
 	}
 
-	return getChangedFiles(tags[tags.length - 2]).some((path) =>
-		path.startsWith(packagePath)
+	const releaseTagIndex = tags.findIndex((tag) => semver.eq(releaseVer, tag));
+	if (releaseTagIndex === -1) {
+		return false;
+	}
+
+	return getChangedFiles(tags[releaseTagIndex - 1]).some((path) =>
+		path.startsWith(packagePath),
 	);
 }
 
@@ -145,7 +150,7 @@ function publishPackage(path, tag) {
 	execSync(
 		`cd ${path} && npm publish${
 			tag ? " --tag " + tag : ""
-		} --access=public --no-git-checks --registry https://registry.npmjs.org`
+		} --access=public --no-git-checks --registry https://registry.npmjs.org`,
 	);
 }
 
