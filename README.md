@@ -20,13 +20,13 @@ Custom scrollbar in ez-way
 
 ## ✨ Features
 
-**Agnostics:** Core of Ez Scrollbar is wrote with Vanilla Javascript.
+**Agnostics:** Core of Ez Scrollbar is wrote with Vanilla Javascript. Supports React, Solid, and Vue. And welcome to contribute other frameworks.
 
 **Headless UI:** You can fully customize your scrollbar without css overriding.
 
+**Lightweight:** Small footprint. Built on a shared core with zero extra dependencies.
+
 ## Documentation
 
-Still in progress...
-
-Please checkout folder `examples`.
+[Full Documentation](https://ez-kits.org/scrollbar/)
 <br>
